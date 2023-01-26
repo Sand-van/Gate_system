@@ -35,7 +35,12 @@ public class LoginCheckFilter implements Filter
                         "/doc.html",
                         "/webjars/**",
                         "/swagger-resources",
-                        "/v2/api-docs"
+                        "/v2/api-docs",
+
+                        "/user/login",
+                        "/user/logout",
+                        "/backend/**",
+                        "/front/**"
                 };
         //2、判断本次请求是否需要处理，如果不需要处理，则直接放行
         if (checkUrl(acceptUrls, requestURI))
@@ -44,14 +49,14 @@ public class LoginCheckFilter implements Filter
             return;
         }
         //3、判断登录状态，如果已登录，则直接放行
-        if (request.getSession().getAttribute("employee") != null)
+        if (request.getSession().getAttribute("id") != null)
         {
-            BaseContext.setCurrentID((Long) request.getSession().getAttribute("employee"));
+            BaseContext.setCurrentID((Long) request.getSession().getAttribute("id"));
             filterChain.doFilter(request, response);
             return;
         }
         //4、如果未登录则返回未登录结果，通过输出流方式向客户端页面响应数据
-        response.getWriter().write(JSON.toJSONString(ReturnMessage.error("NOTLOGIN")));
+        response.getWriter().write(JSON.toJSONString(ReturnMessage.error("NOT_LOGIN")));
     }
 
     /**
