@@ -15,7 +15,7 @@ public class GateSystemApplication
     public static void main(String[] args)
     {
         SpringApplication.run(GateSystemApplication.class, args);
-        log.info("Success!");
+        log.info("服务器启动!");
     }
 
 }
