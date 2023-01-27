@@ -1,7 +1,5 @@
 package com.chao.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -16,45 +14,24 @@ import java.time.LocalDateTime;
 @Data
 public class UserApply implements Serializable
 {
-    /**
-     * 主键
-     */
+
     @ApiModelProperty("主键")
     @TableId
     private Long id;
-    /**
-     * 用户id
-     */
+
     @ApiModelProperty("用户id")
     private Long userId;
-    /**
-     * 设备id
-     */
-    @ApiModelProperty("用户类型")
-    private Integer type;
-    /**
-     * 创建人id
-     */
-    @ApiModelProperty(notes = "创建人id", hidden = true)
-    @TableField(fill = FieldFill.INSERT)
-    private Long createUser;
-    /**
-     * 创建时间
-     */
-    @ApiModelProperty(notes = "创建时间", hidden = true)
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-    /**
-     * 更新人id
-     */
-    @ApiModelProperty(notes = "更新人id", hidden = true)
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private Long updateUser;
-    /**
-     * 更新时间
-     */
-    @ApiModelProperty(notes = "更新时间", hidden = true)
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+
+    @ApiModelProperty("设备id")
+    private Long deviceId;
+
+    @ApiModelProperty("开始时间")
+    private LocalDateTime beginTime;
+
+    @ApiModelProperty("结束时间")
+    private LocalDateTime endTime;
+
+    @ApiModelProperty("申请时间")
+    private LocalDateTime applyTime;
 
 }

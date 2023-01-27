@@ -141,7 +141,7 @@ public class UserController
         return ReturnMessage.success(userPageInfo);
     }
 
-    @PutMapping("/updateUser")
+    @PutMapping("/update")
     @ApiOperation("修改用户")
     @ApiImplicitParam(name = "userToUpdate", value = "要修改的用户信息", required = true)
     public ReturnMessage<String> updateUser(HttpServletRequest request, @RequestBody User userToUpdate)
@@ -177,7 +177,7 @@ public class UserController
     }
 
 
-    @DeleteMapping("/deleteUseByList")
+    @DeleteMapping("/deleteByList")
     @ApiOperation("通过列表删除用户")
     @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", required = true)
     public ReturnMessage<String> deleteUserByList(HttpServletRequest request, @RequestBody List<Long> userIdListToDelete)
@@ -195,7 +195,7 @@ public class UserController
     }
 
 
-    @DeleteMapping("/deleteUser")
+    @DeleteMapping("/delete")
     @ApiOperation("删除单个用户")
     @ApiImplicitParam(name = "userIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUser(HttpServletRequest request, Long userIdToDelete)
@@ -203,6 +203,7 @@ public class UserController
         User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
         User targetUser = userService.getById(userIdToDelete);
 
+        //TODO:其他表的相关信息的删除
         //管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
         {
@@ -223,7 +224,7 @@ public class UserController
         return ReturnMessage.forbiddenError("非法用户");
     }
 
-    @GetMapping("/getUser/{id}")
+    @GetMapping("/get/{id}")
     @ApiOperation("根据用户ID查询信息")
     @ApiImplicitParam(name = "id", value = "要查询的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<User> getUserById(@PathVariable Long id)

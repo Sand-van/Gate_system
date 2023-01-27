@@ -5,7 +5,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chao.entity.User;
 import com.chao.mapper.UserMapper;
 import com.chao.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService
@@ -16,5 +20,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getNumber, number);
         return this.getOne(queryWrapper);
+    }
+
+    @Override
+    public String getNameById(Long id)
+    {
+        User user = this.getById(id);
+        return user.getName();
+    }
+
+    @Override
+    public List<Long> getIdByLikeNameAndNumber(String name, String number)
+    {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(StringUtils.isNotEmpty(name), User::getName, name)
+                .like(StringUtils.isNotEmpty(number), User::getNumber, number);
+        return this.list(queryWrapper).stream().map(User::getId).collect(Collectors.toList());
     }
 }
