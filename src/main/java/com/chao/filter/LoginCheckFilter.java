@@ -56,7 +56,7 @@ public class LoginCheckFilter implements Filter
             return;
         }
         //4、如果未登录则返回未登录结果，通过输出流方式向客户端页面响应数据
-        response.getWriter().write(JSON.toJSONString(ReturnMessage.error("NOT_LOGIN")));
+        response.getWriter().write(JSON.toJSONString(ReturnMessage.commonError("NOT_LOGIN")));
     }
 
     /**

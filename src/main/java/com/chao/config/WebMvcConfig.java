@@ -4,18 +4,19 @@ import com.chao.common.JacksonObjectMapper;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.builders.*;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Response;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,6 +35,7 @@ public class WebMvcConfig implements WebMvcConfigurer
 
     /**
      * 扩展MVC框架的消息转换器
+     *
      * @param converters 转换器
      */
     @Override
@@ -60,7 +62,17 @@ public class WebMvcConfig implements WebMvcConfigurer
     @Bean
     public Docket creatRestApi()
     {
+        List<Response> responseList = new ArrayList<>();
+        responseList.add(new ResponseBuilder().code("401").description("Unauthorized").build());
+        responseList.add(new ResponseBuilder().code("403").description("Forbidden").build());
+        responseList.add(new ResponseBuilder().code("404").description("Not Found").build());
+        responseList.add(new ResponseBuilder().code("430").description("普通错误").build());
+
         return new Docket(DocumentationType.SWAGGER_2)
+                .globalResponses(HttpMethod.GET, responseList)
+                .globalResponses(HttpMethod.POST, responseList)
+                .globalResponses(HttpMethod.PUT, responseList)
+                .globalResponses(HttpMethod.DELETE, responseList)
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.chao.controller"))

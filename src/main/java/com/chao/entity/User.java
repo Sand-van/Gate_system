@@ -51,25 +51,25 @@ public class User implements Serializable
     /**
      * 创建人id
      */
-    @ApiModelProperty("创建人id")
+    @ApiModelProperty(notes = "创建人id", hidden = true)
     @TableField(fill = FieldFill.INSERT)
     private Long createUser;
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(notes = "创建时间", hidden = true)
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     /**
      * 更新人id
      */
-    @ApiModelProperty("更新人id")
+    @ApiModelProperty(notes = "更新人id", hidden = true)
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long updateUser;
     /**
      * 更新时间
      */
+    @ApiModelProperty(notes = "更新时间", hidden = true)
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    @ApiModelProperty("更新时间")
     private LocalDateTime updateTime;
 }

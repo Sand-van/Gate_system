@@ -23,15 +23,15 @@ public class GlobalExceptionHandler
         {
             String[] split = ex.getMessage().split(" ");
             String message = split[2];
-            return ReturnMessage.error(message + "已存在");
+            return ReturnMessage.commonError(message + "已存在");
         }
 
-        return ReturnMessage.error("未知错误");
+        return ReturnMessage.commonError("未知错误");
     }
     @ExceptionHandler(CustomException.class)
     public ReturnMessage<String> exceptionHandler(CustomException ex)
     {
-        return ReturnMessage.error(ex.getMessage());
+        return ReturnMessage.commonError(ex.getMessage());
     }
 }
 

@@ -5,4 +5,5 @@ import com.chao.entity.User;
 
 public interface UserService extends IService<User>
 {
+    User getByNumber(String number);
 }
