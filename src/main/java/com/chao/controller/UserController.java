@@ -37,7 +37,6 @@ public class UserController
     @PostMapping("/login")
     @ApiOperation(value = "用户登录")
     @ApiImplicitParam(name = "user", value = "登录的用户信息", required = true)
-//    @ApiResponse(code = 430, message = "普通错误")
     public ReturnMessage<User> login(HttpServletRequest request, @RequestBody User user)
     {
         String password = user.getPassword();
@@ -118,10 +117,10 @@ public class UserController
     @GetMapping("/page")
     @ApiOperation("请求用户分页信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "要显示第几页", dataType = "int", required = true),
-            @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataType = "int", required = true),
-            @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataType = "string"),
-            @ApiImplicitParam(name = "queryNumber", value = "要搜索的工号、学号", dataType = "string")
+            @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryNumber", value = "要搜索的工号、学号", dataTypeClass = String.class)
     })
     public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryNumber)
     {
@@ -147,6 +146,7 @@ public class UserController
     @ApiImplicitParam(name = "userToUpdate", value = "要修改的用户信息", required = true)
     public ReturnMessage<String> updateUser(HttpServletRequest request, @RequestBody User userToUpdate)
     {
+        log.info(User.class.toString());
         User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
 
         if (Objects.equals(userToUpdate.getId(), nowLoginUser.getId()))
@@ -179,8 +179,8 @@ public class UserController
 
     @DeleteMapping("/deleteUseByList")
     @ApiOperation("通过列表删除用户")
-    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", type = "List", required = true)
-    public ReturnMessage<String> deleteUserByList(HttpServletRequest request, List<Long> userIdListToDelete)
+    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", required = true)
+    public ReturnMessage<String> deleteUserByList(HttpServletRequest request, @RequestBody List<Long> userIdListToDelete)
     {
         int successNumber = 0, failNumber = 0;
 
@@ -197,7 +197,7 @@ public class UserController
 
     @DeleteMapping("/deleteUser")
     @ApiOperation("删除单个用户")
-    @ApiImplicitParam(name = "userIdToDelete", value = "要删除的用户的id", type = "Long", required = true)
+    @ApiImplicitParam(name = "userIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUser(HttpServletRequest request, Long userIdToDelete)
     {
         User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
@@ -222,4 +222,17 @@ public class UserController
 
         return ReturnMessage.forbiddenError("非法用户");
     }
+
+    @GetMapping("/getUser/{id}")
+    @ApiOperation("根据用户ID查询信息")
+    @ApiImplicitParam(name = "id", value = "要查询的用户的id", dataTypeClass = Long.class, required = true)
+    public ReturnMessage<User> getUserById(@PathVariable Long id)
+    {
+        User user = userService.getById(id);
+        if (user != null)
+            return ReturnMessage.success(user);
+
+        return ReturnMessage.commonError("没有该用户");
+    }
+
 }

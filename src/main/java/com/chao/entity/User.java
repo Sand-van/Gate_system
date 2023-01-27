@@ -2,6 +2,7 @@ package com.chao.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -11,8 +12,8 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-
-@ApiModel(value = "用户", description = "用户实体类")
+@Api(tags = "用户实体类")
+@ApiModel(value = "用户实体类")
 @TableName("user")
 @Data
 public class User implements Serializable
