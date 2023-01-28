@@ -9,7 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ApiModel(value = "通行记录", description = "通行记录实体类")
+@ApiModel("通行记录实体类")
 @TableName("permission_records")
 @Data
 public class PermissionRecords implements Serializable
@@ -35,5 +35,4 @@ public class PermissionRecords implements Serializable
      */
     @ApiModelProperty("通行时间")
     private LocalDateTime permissionTime;
-
 }

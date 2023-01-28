@@ -18,7 +18,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User getByNumber(String number)
     {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getNumber, number);
+        queryWrapper.eq(User::getAccount, number);
         return this.getOne(queryWrapper);
     }
 
@@ -34,7 +34,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(name), User::getName, name)
-                .like(StringUtils.isNotEmpty(number), User::getNumber, number);
+                .like(StringUtils.isNotEmpty(number), User::getAccount, number);
         return this.list(queryWrapper).stream().map(User::getId).collect(Collectors.toList());
     }
 }

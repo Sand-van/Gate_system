@@ -1,11 +1,11 @@
 package com.chao.dto;
 
-import com.chao.entity.UserApply;
+import com.chao.entity.UserPermit;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel("用户申请DTO类")
-public class UserApplyDto extends UserApply
+@ApiModel("用户通行权限DTO类")
+public class UserPermitDto extends UserPermit
 {
     @ApiModelProperty("用户名")
     private String userName;

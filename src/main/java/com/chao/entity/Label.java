@@ -11,7 +11,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ApiModel(value = "标签", description = "标签实体类")
+@ApiModel("标签实体类")
 @TableName("label")
 @Data
 public class Label implements Serializable

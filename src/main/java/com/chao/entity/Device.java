@@ -9,7 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
-@ApiModel(value = "设备", description = "设备实体类")
+@ApiModel("设备实体类")
 @TableName("device")
 @Data
 public class Device implements Serializable

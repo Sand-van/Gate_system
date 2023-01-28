@@ -9,7 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ApiModel(value = "用户申请", description = "用户申请实体类")
+@ApiModel("用户申请实体类")
 @TableName("user_apply")
 @Data
 public class UserApply implements Serializable

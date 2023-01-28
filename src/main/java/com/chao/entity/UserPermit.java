@@ -11,7 +11,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ApiModel(value = "用户通行", description = "用户通行实体类")
+@ApiModel("用户通行权限实体类")
 @TableName("user_permit")
 @Data
 public class UserPermit implements Serializable

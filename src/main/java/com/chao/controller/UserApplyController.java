@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/user/apply")
-@Api(tags = "用户申请操作相关")
+@Api(tags = "用户申请操作相关接口")
 public class UserApplyController
 {
     @Autowired
@@ -58,8 +58,25 @@ public class UserApplyController
     @ApiImplicitParam(name = "userApplyId", value = "要删除的用户申请id", required = true)
     public ReturnMessage<String> deleteUserApplyById(Long userApplyId)
     {
+        //TODO:增加管理员的相关权限判断(默认存在一个queryDevice，与查询出来的取交集)
         userApplyService.removeById(userApplyId);
         return ReturnMessage.success("删除成功");
+    }
+
+    @DeleteMapping("/deleteByIdList")
+    @ApiOperation("通过id列表删除用户申请信息")
+    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户申请信息的id列表", required = true)
+    public ReturnMessage<String> deleteUserApplyByList(@RequestBody List<Long> userIdListToDelete)
+    {
+        int successNumber = 0, failNumber = 0;
+        for (Long item : userIdListToDelete)
+        {
+            if (deleteUserApplyById(item).getCode() == 200)
+                successNumber += 1;
+            else
+                failNumber += 1;
+        }
+        return ReturnMessage.success(String.format("成功删除的个数：%d，删除失败的个数：%d", successNumber, failNumber));
     }
 
     @GetMapping("/page")
@@ -83,7 +100,7 @@ public class UserApplyController
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<UserApply> queryWrapper = new LambdaQueryWrapper<>();
-
+        //TODO:增加管理员的相关权限判断(默认存在一个queryDevice，与查询出来的取交集)
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
         {
             List<Long> userIds = userService.getIdByLikeNameAndNumber(queryName, queryNumber);
@@ -122,4 +139,6 @@ public class UserApplyController
         userApplyDtoPageInfo.setRecords(dtoRecords);
         return ReturnMessage.success(userApplyDtoPageInfo);
     }
+
+    //TODO:增加一个申请转正的方法
 }

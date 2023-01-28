@@ -33,12 +33,17 @@ public class User implements Serializable
      * 用户学号/工号
      */
     @ApiModelProperty("用户学号/工号")
-    private String number;
+    private String account;
     /**
      * 密码
      */
     @ApiModelProperty("密码")
     private String password;
+    /**
+     * 校园卡id
+     */
+    @ApiModelProperty("校园卡id")
+    private String cardNumber;
     /**
      * 手机号
      */

@@ -21,7 +21,7 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequestMapping("/user")
-@Api(tags = "用户操作相关")
+@Api(tags = "用户操作相关接口")
 public class UserController
 {
     @Autowired
@@ -43,7 +43,7 @@ public class UserController
         password = DigestUtils.md5DigestAsHex(password.getBytes());
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getNumber, user.getNumber());
+        queryWrapper.eq(User::getAccount, user.getAccount());
         User queryedUser = userService.getOne(queryWrapper);
 
         if (queryedUser == null)
@@ -76,7 +76,7 @@ public class UserController
 
         //判断用户是否已经存在
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getNumber, userToAdd.getNumber());
+        queryWrapper.eq(User::getAccount, userToAdd.getAccount());
         User queryedUser = userService.getOne(queryWrapper);
         if (queryedUser != null)
             return ReturnMessage.commonError("用户已存在");
@@ -133,7 +133,7 @@ public class UserController
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(queryName), User::getName, queryName)
-                .like(StringUtils.isNotEmpty(queryNumber), User::getNumber, queryNumber)
+                .like(StringUtils.isNotEmpty(queryNumber), User::getAccount, queryNumber)
                 .orderByDesc(User::getUpdateUser);
 
         userService.page(userPageInfo, queryWrapper);
@@ -177,7 +177,7 @@ public class UserController
     }
 
 
-    @DeleteMapping("/deleteByList")
+    @DeleteMapping("/deleteByIdList")
     @ApiOperation("通过列表删除用户")
     @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", required = true)
     public ReturnMessage<String> deleteUserByList(HttpServletRequest request, @RequestBody List<Long> userIdListToDelete)

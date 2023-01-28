@@ -1,26 +1,26 @@
 package com.chao.dto;
 
-import com.chao.entity.UserApply;
+import com.chao.entity.AdminAuthority;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel("用户申请DTO类")
-public class UserApplyDto extends UserApply
+@ApiModel("管理员权限DTO类")
+public class AdminAuthorityDto extends AdminAuthority
 {
-    @ApiModelProperty("用户名")
-    private String userName;
+    @ApiModelProperty("管理员名字")
+    private String adminName;
 
     @ApiModelProperty("设备名")
     private String deviceName;
 
-    public String getUserName()
+    public String getAdminName()
     {
-        return userName;
+        return adminName;
     }
 
-    public void setUserName(String userName)
+    public void setAdminName(String adminName)
     {
-        this.userName = userName;
+        this.adminName = adminName;
     }
 
     public String getDeviceName()

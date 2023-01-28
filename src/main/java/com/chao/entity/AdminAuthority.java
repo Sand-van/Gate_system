@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
-@ApiModel(value = "管理员权限", description = "管理员权限实体类")
+@ApiModel("管理员权限实体类")
 @TableName("admin_authority")
 @Data
 public class AdminAuthority implements Serializable
