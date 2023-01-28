@@ -8,6 +8,7 @@ import com.chao.common.ReturnMessage;
 import com.chao.dto.UserPermitDto;
 import com.chao.entity.User;
 import com.chao.entity.UserPermit;
+import com.chao.service.AdminAuthorityService;
 import com.chao.service.DeviceService;
 import com.chao.service.UserPermitService;
 import com.chao.service.UserService;
@@ -21,7 +22,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,18 +41,34 @@ public class UserPermitController
     @Autowired
     private DeviceService deviceService;
 
-    private Boolean isLoginUserHasAuthority(HttpServletRequest request)
+    @Autowired
+    private AdminAuthorityService adminAuthorityService;
+
+    /**
+     * 判断当前用户是否有权限操作当前申请信息
+     *
+     * @param userPermit 当前的申请信息
+     * @return boolean, 是否有权限
+     */
+    private Boolean isLoginUserHasAuthority(UserPermit userPermit)
     {
-        return (request.getSession().getAttribute("type") == CommonEnum.USER_TYPE_ADMIN) || (request.getSession().getAttribute("type") == CommonEnum.USER_TYPE_SUPER_ADMIN);
+        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+            return false;
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        {
+            //管理员没有该设备的权限
+            return adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId()).contains(userPermit.getDeviceId());
+        }
+        return true;
     }
 
     @PostMapping("/add")
     @ApiOperation("添加用户通行权限信息")
     @ApiImplicitParam(name = "userPermitToAdd", value = "要添加的用户通行权限信息", required = true)
-    public ReturnMessage<String> addUserPermit(HttpServletRequest request, @RequestBody UserPermit userPermitToAdd)
+    public ReturnMessage<String> addUserPermit(@RequestBody UserPermit userPermitToAdd)
     {
-        //TODO:判断是否重复添加
-        if (isLoginUserHasAuthority(request))
+        if (isLoginUserHasAuthority(userPermitToAdd))
         {
             userPermitToAdd.setId(null);
             userPermitService.save(userPermitToAdd);
@@ -64,10 +80,10 @@ public class UserPermitController
     @DeleteMapping("/deleteById")
     @ApiOperation("通过id来删除用户通行权限信息")
     @ApiImplicitParam(name = "userPermitId", value = "要删除的用户通行权限信息id", required = true)
-    public ReturnMessage<String> deleteUserPermitById(HttpServletRequest request, Long userPermitId)
+    public ReturnMessage<String> deleteUserPermitById(Long userPermitId)
     {
-        //TODO:增加批量删除权限（需要获取管理员的操作权限List）
-        if (isLoginUserHasAuthority(request))
+        UserPermit userPermit = userPermitService.getById(userPermitId);
+        if (isLoginUserHasAuthority(userPermit))
         {
             userPermitService.removeById(userPermitId);
             return ReturnMessage.success("删除成功");
@@ -75,7 +91,21 @@ public class UserPermitController
         return ReturnMessage.commonError("没有权限");
     }
 
-    //TODO:增加批量删除权限（需要获取管理员的操作权限List）
+    @DeleteMapping("/deleteByIdList")
+    @ApiOperation("通过id列表来删除用户通行权限信息")
+    @ApiImplicitParam(name = "userPermitIdList", value = "要删除的用户通行权限信息id列表", required = true)
+    public ReturnMessage<String> deleteUserPermitByIdList(@RequestBody List<Long> userPermitIdList)
+    {
+        int successNumber = 0, failNumber = 0;
+        for (Long userPermitId : userPermitIdList)
+        {
+            if (deleteUserPermitById(userPermitId).getCode() == 200)
+                successNumber += 1;
+            else
+                failNumber += 1;
+        }
+        return ReturnMessage.success(String.format("成功删除的个数：%d，删除失败的个数：%d", successNumber, failNumber));
+    }
 
     @GetMapping("/page")
     @ApiOperation("请求用户通行权限信息分页信息")
@@ -99,10 +129,14 @@ public class UserPermitController
 
         LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
 
-//        TODO:增加管理员的相关权限判断(默认存在一个queryDevice，与查询出来的取交集)
+        List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+        if (deviceIdByAdminId.size() == 0)
+            return ReturnMessage.success(userPermitDtoPageInfo);
+        queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
+
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
         {
-            List<Long> userIds = userService.getIdByLikeNameAndNumber(queryName, queryNumber);
+            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryNumber);
             if (userIds.size() == 0)    //防止出现 select * from xxx where(user_id in [null])错误
                 return ReturnMessage.success(userPermitDtoPageInfo);
             queryWrapper.in(UserPermit::getUserId, userIds);

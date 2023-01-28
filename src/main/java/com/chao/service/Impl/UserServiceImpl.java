@@ -30,11 +30,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public List<Long> getIdByLikeNameAndNumber(String name, String number)
+    public List<Long> getIdByLikeNameAndAccount(String name, String account)
     {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(name), User::getName, name)
-                .like(StringUtils.isNotEmpty(number), User::getAccount, number);
+                .like(StringUtils.isNotEmpty(account), User::getAccount, account);
         return this.list(queryWrapper).stream().map(User::getId).collect(Collectors.toList());
     }
 }

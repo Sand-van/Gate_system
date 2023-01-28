@@ -149,23 +149,24 @@ public class UserController
         log.info(User.class.toString());
         User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
 
+        //自己可以修改自己
         if (Objects.equals(userToUpdate.getId(), nowLoginUser.getId()))
         {
             userService.updateById(userToUpdate);
             return ReturnMessage.success("信息修改成功");
         }
 
-        User targetUser = userService.getById(userToUpdate.getId());
-        //管理员的权限
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
-        {
-            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
-            {
-                userService.updateById(userToUpdate);
-                return ReturnMessage.success("信息修改成功");
-            } else
-                return ReturnMessage.commonError("没有权限");
-        }
+        //管理员的权限 管理员没有权限修改用户
+//        User targetUser = userService.getById(userToUpdate.getId());
+//        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+//        {
+//            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
+//            {
+//                userService.updateById(userToUpdate);
+//                return ReturnMessage.success("信息修改成功");
+//            } else
+//                return ReturnMessage.commonError("没有权限");
+//        }
         //超级管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
@@ -204,16 +205,16 @@ public class UserController
         User targetUser = userService.getById(userIdToDelete);
 
         //TODO:其他表的相关信息的删除
-        //管理员的权限
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
-        {
-            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
-            {
-                userService.removeById(userIdToDelete);
-                return ReturnMessage.success("用户删除成功");
-            } else
-                return ReturnMessage.commonError("没有权限");
-        }
+        //管理员的权限 管理员没有权限删除用户
+//        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+//        {
+//            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
+//            {
+//                userService.removeById(userIdToDelete);
+//                return ReturnMessage.success("用户删除成功");
+//            } else
+//                return ReturnMessage.commonError("没有权限");
+//        }
         //超级管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {

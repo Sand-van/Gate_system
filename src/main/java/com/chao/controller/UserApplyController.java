@@ -8,9 +8,8 @@ import com.chao.common.ReturnMessage;
 import com.chao.dto.UserApplyDto;
 import com.chao.entity.User;
 import com.chao.entity.UserApply;
-import com.chao.service.DeviceService;
-import com.chao.service.UserApplyService;
-import com.chao.service.UserService;
+import com.chao.entity.UserPermit;
+import com.chao.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -41,6 +40,12 @@ public class UserApplyController
     @Autowired
     private DeviceService deviceService;
 
+    @Autowired
+    private AdminAuthorityService adminAuthorityService;
+
+    @Autowired
+    private UserPermitService userPermitService;
+
     @PostMapping("/add")
     @ApiOperation("添加用户申请")
     @ApiImplicitParam(name = "userApplyToAdd", value = "要添加的用户申请", required = true)
@@ -58,7 +63,6 @@ public class UserApplyController
     @ApiImplicitParam(name = "userApplyId", value = "要删除的用户申请id", required = true)
     public ReturnMessage<String> deleteUserApplyById(Long userApplyId)
     {
-        //TODO:增加管理员的相关权限判断(默认存在一个queryDevice，与查询出来的取交集)
         userApplyService.removeById(userApplyId);
         return ReturnMessage.success("删除成功");
     }
@@ -100,10 +104,19 @@ public class UserApplyController
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<UserApply> queryWrapper = new LambdaQueryWrapper<>();
-        //TODO:增加管理员的相关权限判断(默认存在一个queryDevice，与查询出来的取交集)
+
+        //管理员只能查看自己权限内的申请
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        {
+            List<Long> deviceId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+            if (deviceId.size() == 0)
+                return ReturnMessage.success(userApplyDtoPageInfo);
+            queryWrapper.in(UserApply::getDeviceId, deviceId);
+        }
+
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
         {
-            List<Long> userIds = userService.getIdByLikeNameAndNumber(queryName, queryNumber);
+            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryNumber);
             if (userIds.size() == 0)    //防止出现 select * from xxx where(user_id in [null])错误
                 return ReturnMessage.success(userApplyDtoPageInfo);
             queryWrapper.in(UserApply::getUserId, userIds);
@@ -140,5 +153,35 @@ public class UserApplyController
         return ReturnMessage.success(userApplyDtoPageInfo);
     }
 
-    //TODO:增加一个申请转正的方法
+    @PostMapping("/accept")
+    @ApiOperation("同意申请转正")
+    @ApiImplicitParam(name = "applyId", value = "申请ID", dataTypeClass = Long.class, required = true)
+    public ReturnMessage<String> acceptApply(Long applyId)
+    {
+        //普通用户没有权限
+        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+        UserApply userApply = userApplyService.getById(applyId);
+
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+            return ReturnMessage.forbiddenError("没有权限");
+
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        {
+            if (!adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId()).contains(userApply.getDeviceId()))
+            {
+                //管理员没有该设备的权限
+                return ReturnMessage.commonError("没有权限");
+            }
+        }
+
+        UserPermit userPermit = new UserPermit();
+        userPermit.setUserId(userApply.getUserId());
+        userPermit.setDeviceId(userApply.getDeviceId());
+        userPermit.setBeginTime(userApply.getBeginTime());
+        userPermit.setEndTime(userApply.getEndTime());
+        userPermitService.save(userPermit);
+        userApplyService.removeById(applyId);
+
+        return ReturnMessage.success("添加成功");
+    }
 }
