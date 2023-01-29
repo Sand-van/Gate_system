@@ -225,10 +225,10 @@ public class UserController
         return ReturnMessage.forbiddenError("非法用户");
     }
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/getById")
     @ApiOperation("根据用户ID查询信息")
     @ApiImplicitParam(name = "id", value = "要查询的用户的id", dataTypeClass = Long.class, required = true)
-    public ReturnMessage<User> getUserById(@PathVariable Long id)
+    public ReturnMessage<User> getUserById(Long id)
     {
         User user = userService.getById(id);
         if (user != null)
@@ -236,5 +236,4 @@ public class UserController
 
         return ReturnMessage.commonError("没有该用户");
     }
-
 }

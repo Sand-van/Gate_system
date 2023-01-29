@@ -129,10 +129,14 @@ public class UserPermitController
 
         LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
 
-        List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
-        if (deviceIdByAdminId.size() == 0)
-            return ReturnMessage.success(userPermitDtoPageInfo);
-        queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
+        //管理员只能查看自己权限内的信息
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        {
+            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+            if (deviceIdByAdminId.size() == 0)
+                return ReturnMessage.success(userPermitDtoPageInfo);
+            queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
+        }
 
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
         {

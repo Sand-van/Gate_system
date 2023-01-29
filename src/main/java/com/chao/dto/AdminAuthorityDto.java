@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel("管理员权限DTO类")
 public class AdminAuthorityDto extends AdminAuthority
 {
-    @ApiModelProperty("管理员名字")
+    @ApiModelProperty("管理员姓名")
     private String adminName;
 
     @ApiModelProperty("设备名")
