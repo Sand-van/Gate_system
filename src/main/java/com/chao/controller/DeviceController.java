@@ -5,11 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
-import com.chao.entity.Device;
-import com.chao.entity.User;
-import com.chao.service.DeviceService;
-import com.chao.service.UserPermitService;
-import com.chao.service.UserService;
+import com.chao.entity.*;
+import com.chao.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -36,8 +33,17 @@ public class DeviceController
     @Autowired
     private UserPermitService userPermitService;
 
+    @Autowired
+    private AdminAuthorityService adminAuthorityService;
+
+    @Autowired
+    private PermissionRecordsService permissionRecordsService;
+
+    @Autowired
+    private UserApplyService userApplyService;
+
     @PostMapping("/add")
-    @ApiOperation("添加设备")
+    @ApiOperation("手动添加设备")
     @ApiImplicitParam(name = "deviceToAdd", value = "要添加的设备信息", required = true)
     public ReturnMessage<String> addDevice(@RequestBody Device deviceToAdd)
     {
@@ -45,16 +51,71 @@ public class DeviceController
 
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
-            deviceToAdd.setId(null);
             deviceService.save(deviceToAdd);
-
             return ReturnMessage.success("添加成功");
         }
         return ReturnMessage.forbiddenError("没有权限");
     }
 
+    @DeleteMapping("/delete")
+    @ApiOperation("删除单个设备")
+    @ApiImplicitParam(name = "deviceIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
+    public ReturnMessage<String> deleteUser(Long deviceIdToDelete)
+    {
+        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+
+        //超级管理员的权限
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        {
+            LambdaQueryWrapper<PermissionRecords> PRQueryWrapper = new LambdaQueryWrapper<>();
+            PRQueryWrapper.eq(PermissionRecords::getDeviceId, deviceIdToDelete);
+            permissionRecordsService.remove(PRQueryWrapper);
+
+            LambdaQueryWrapper<UserApply> userApplyQueryWrapper = new LambdaQueryWrapper<>();
+            userApplyQueryWrapper.eq(UserApply::getDeviceId, deviceIdToDelete);
+            userApplyService.remove(userApplyQueryWrapper);
+
+            LambdaQueryWrapper<UserPermit> userPermitQueryWrapper = new LambdaQueryWrapper<>();
+            userPermitQueryWrapper.eq(UserPermit::getDeviceId, deviceIdToDelete);
+            userPermitService.remove(userPermitQueryWrapper);
+
+            LambdaQueryWrapper<AdminAuthority> adminAuthorityQueryWrapper = new LambdaQueryWrapper<>();
+            adminAuthorityQueryWrapper.eq(AdminAuthority::getDeviceId, deviceIdToDelete);
+            adminAuthorityService.remove(adminAuthorityQueryWrapper);
+
+            deviceService.resetDevice(deviceIdToDelete);
+
+            deviceService.removeById(deviceIdToDelete);
+
+            return ReturnMessage.success("设备删除成功");
+        }
+        return ReturnMessage.forbiddenError("非法用户");
+    }
+
+    @PostMapping("/replace")
+    @ApiOperation("替换设备")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "deviceIdToBeReplace", value = "被替换的设备id", required = true),
+            @ApiImplicitParam(name = "deviceToReplace", value = "要替换的设备信息", required = true)
+    })
+    public ReturnMessage<String> replaceDevice(Long deviceIdToBeReplace, @RequestBody Device deviceToReplace)
+    {
+        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+
+        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        {
+            if (deviceService.getDeviceDataCount(deviceToReplace.getId()) != 0)
+                return ReturnMessage.commonError("要替换的设备存在数据信息，请尝试删除该设备来重置此设备");
+
+            deviceToReplace.setId(deviceIdToBeReplace);
+            deviceService.updateDeviceInfo(deviceToReplace);
+            return ReturnMessage.success("替换成功");
+        }
+        return ReturnMessage.commonError("没有权限");
+    }
+
     @PostMapping("/update")
-    @ApiOperation("修改设备信息")
+    @ApiOperation("更新设备信息")
     @ApiImplicitParam(name = "deviceToUpdate", value = "要更新的设备信息", required = true)
     public ReturnMessage<String> updateDevice(@RequestBody Device deviceToUpdate)
     {
@@ -63,9 +124,9 @@ public class DeviceController
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             deviceService.updateById(deviceToUpdate);
-            return ReturnMessage.success("修改成功");
+            return ReturnMessage.success("更新成功");
         }
-        return ReturnMessage.forbiddenError("没有权限");
+        return ReturnMessage.commonError("没有权限");
     }
 
     @GetMapping("/getById")
@@ -99,5 +160,18 @@ public class DeviceController
         deviceService.page(devicePageInfo, queryWrapper);
 
         return ReturnMessage.success(devicePageInfo);
+    }
+
+    @PostMapping("/openDevice")
+    @ApiOperation("启动设备")
+    @ApiImplicitParam(name = "deviceId", value = "设备id", dataTypeClass = Long.class, required = true)
+    public ReturnMessage<String> openDevice(Long deviceId)
+    {
+        if (deviceService.judgeUserAndDevice(BaseContext.getCurrentID(), deviceId))
+        {
+            deviceService.openDevice(deviceId);
+            return ReturnMessage.success("启动成功");
+        }
+        return ReturnMessage.commonError("没有权限");
     }
 }

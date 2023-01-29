@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
-import com.chao.entity.User;
-import com.chao.service.UserService;
+import com.chao.entity.*;
+import com.chao.service.*;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -26,6 +26,18 @@ public class UserController
 {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserPermitService userPermitService;
+
+    @Autowired
+    private AdminAuthorityService adminAuthorityService;
+
+    @Autowired
+    private PermissionRecordsService permissionRecordsService;
+
+    @Autowired
+    private UserApplyService userApplyService;
 
     /**
      * 用户登录方法
@@ -156,17 +168,6 @@ public class UserController
             return ReturnMessage.success("信息修改成功");
         }
 
-        //管理员的权限 管理员没有权限修改用户
-//        User targetUser = userService.getById(userToUpdate.getId());
-//        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
-//        {
-//            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
-//            {
-//                userService.updateById(userToUpdate);
-//                return ReturnMessage.success("信息修改成功");
-//            } else
-//                return ReturnMessage.commonError("没有权限");
-//        }
         //超级管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
@@ -181,13 +182,13 @@ public class UserController
     @DeleteMapping("/deleteByIdList")
     @ApiOperation("通过列表删除用户")
     @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", required = true)
-    public ReturnMessage<String> deleteUserByList(HttpServletRequest request, @RequestBody List<Long> userIdListToDelete)
+    public ReturnMessage<String> deleteUserByList(@RequestBody List<Long> userIdListToDelete)
     {
         int successNumber = 0, failNumber = 0;
 
         for (Long item : userIdListToDelete)
         {
-            if (deleteUser(request, item).getCode() == 200)
+            if (deleteUser(item).getCode() == 200)
                 successNumber += 1;
             else
                 failNumber += 1;
@@ -199,26 +200,31 @@ public class UserController
     @DeleteMapping("/delete")
     @ApiOperation("删除单个用户")
     @ApiImplicitParam(name = "userIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
-    public ReturnMessage<String> deleteUser(HttpServletRequest request, Long userIdToDelete)
+    public ReturnMessage<String> deleteUser(Long userIdToDelete)
     {
-        User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
-        User targetUser = userService.getById(userIdToDelete);
+        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
-        //TODO:其他表的相关信息的删除
-        //管理员的权限 管理员没有权限删除用户
-//        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
-//        {
-//            if (Objects.equals(targetUser.getType(), CommonEnum.USER_TYPE_USER))
-//            {
-//                userService.removeById(userIdToDelete);
-//                return ReturnMessage.success("用户删除成功");
-//            } else
-//                return ReturnMessage.commonError("没有权限");
-//        }
         //超级管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             userService.removeById(userIdToDelete);
+
+            LambdaQueryWrapper<PermissionRecords> PRQueryWrapper = new LambdaQueryWrapper<>();
+            PRQueryWrapper.eq(PermissionRecords::getUserId, userIdToDelete);
+            permissionRecordsService.remove(PRQueryWrapper);
+
+            LambdaQueryWrapper<UserApply> userApplyQueryWrapper = new LambdaQueryWrapper<>();
+            userApplyQueryWrapper.eq(UserApply::getUserId, userIdToDelete);
+            userApplyService.remove(userApplyQueryWrapper);
+
+            LambdaQueryWrapper<UserPermit> userPermitQueryWrapper = new LambdaQueryWrapper<>();
+            userPermitQueryWrapper.eq(UserPermit::getUserId, userIdToDelete);
+            userPermitService.remove(userPermitQueryWrapper);
+
+            LambdaQueryWrapper<AdminAuthority> adminAuthorityQueryWrapper = new LambdaQueryWrapper<>();
+            adminAuthorityQueryWrapper.eq(AdminAuthority::getUserId, userIdToDelete);
+            adminAuthorityService.remove(adminAuthorityQueryWrapper);
+
             return ReturnMessage.success("用户删除成功");
         }
 
