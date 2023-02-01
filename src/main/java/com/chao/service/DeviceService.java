@@ -14,11 +14,6 @@ public interface DeviceService extends IService<Device>
      */
     List<Long> getIdByLikeName(String name);
 
-    /**
-     * 启动设备
-     * @param deviceId 要启动的设备id
-     */
-    void openDevice(Long deviceId);
 
     /**
      * 判断用户是否可以启动设备
@@ -28,18 +23,6 @@ public interface DeviceService extends IService<Device>
      */
     boolean judgeUserAndDevice(Long userId, Long deviceId);
 
-    /**
-     * 更新设备信息
-     * @param device 设备信息
-     * @return 是否更新成功
-     */
-    boolean updateDeviceInfo(Device device);
-
-    /**
-     * 具体设备连接后，进行的数据库操作方法
-     * @param linkDevice 连接的设备信息
-     */
-    void deviceLink(Device linkDevice);
 
     /**
      * 根据设备名称来获取该设备在其他表中的数据总数

@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.*;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.service.Response;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -56,6 +57,7 @@ public class WebMvcConfig implements WebMvcConfigurer
                 .title("门禁管理系统")
                 .version("1.0")
                 .description("门禁管理系统接口文档")
+                .contact(new Contact("Chao", null, "Sand_van@hotmail.com"))
                 .build();
     }
 
@@ -76,6 +78,7 @@ public class WebMvcConfig implements WebMvcConfigurer
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.chao.controller"))
+//                .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build();
     }

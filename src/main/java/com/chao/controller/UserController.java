@@ -181,7 +181,7 @@ public class UserController
 
     @DeleteMapping("/deleteByIdList")
     @ApiOperation("通过列表删除用户")
-    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", required = true)
+    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户的id列表", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUserByList(@RequestBody List<Long> userIdListToDelete)
     {
         int successNumber = 0, failNumber = 0;

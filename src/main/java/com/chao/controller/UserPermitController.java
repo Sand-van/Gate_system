@@ -77,9 +77,11 @@ public class UserPermitController
         return ReturnMessage.commonError("没有权限");
     }
 
+    //todo:增加修改操作
+
     @DeleteMapping("/deleteById")
     @ApiOperation("通过id来删除用户通行权限信息")
-    @ApiImplicitParam(name = "userPermitId", value = "要删除的用户通行权限信息id", required = true)
+    @ApiImplicitParam(name = "userPermitId", value = "要删除的用户通行权限信息id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUserPermitById(Long userPermitId)
     {
         UserPermit userPermit = userPermitService.getById(userPermitId);
@@ -93,7 +95,7 @@ public class UserPermitController
 
     @DeleteMapping("/deleteByIdList")
     @ApiOperation("通过id列表来删除用户通行权限信息")
-    @ApiImplicitParam(name = "userPermitIdList", value = "要删除的用户通行权限信息id列表", required = true)
+    @ApiImplicitParam(name = "userPermitIdList", value = "要删除的用户通行权限信息id列表", dataTypeClass = List.class, required = true)
     public ReturnMessage<String> deleteUserPermitByIdList(@RequestBody List<Long> userPermitIdList)
     {
         int successNumber = 0, failNumber = 0;

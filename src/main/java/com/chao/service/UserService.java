@@ -11,5 +11,7 @@ public interface UserService extends IService<User>
 
     String getNameById(Long id);
 
+    User getUserByCardID(Long cardID);
+
     List<Long> getIdByLikeNameAndAccount(String name, String account);
 }

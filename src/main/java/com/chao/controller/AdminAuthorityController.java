@@ -41,7 +41,7 @@ public class AdminAuthorityController
 
     @PostMapping("/add")
     @ApiOperation("添加管理员权限")
-    @ApiImplicitParam(name = "adminAuthorityToAdd", value = "要添加的管理员权限信息", required = true)
+    @ApiImplicitParam(name = "adminAuthorityToAdd", value = "要添加的管理员权限信息", dataTypeClass = AdminAuthority.class, required = true)
     public ReturnMessage<String> addAdminAuthority(@RequestBody AdminAuthority adminAuthorityToAdd)
     {
         User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -64,7 +64,7 @@ public class AdminAuthorityController
 
     @DeleteMapping("/deleteById")
     @ApiOperation("通过id来删除管理员权限")
-    @ApiImplicitParam(name = "adminAuthorityId", value = "要删除的管理员权限id", required = true)
+    @ApiImplicitParam(name = "adminAuthorityId", value = "要删除的管理员权限id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteAdminAuthority(Long adminAuthorityId)
     {
         User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -81,7 +81,7 @@ public class AdminAuthorityController
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
-            @ApiImplicitParam(name = "adminId", value = "管理员id", required = true),
+            @ApiImplicitParam(name = "adminId", value = "管理员id", dataTypeClass = Long.class, required = true),
             @ApiImplicitParam(name = "deviceName", value = "要搜索的设备名字", dataTypeClass = String.class),
     })
     public ReturnMessage<Page<AdminAuthorityDto>> pageByAdminId(int page, int pageSize, Long adminId, String deviceName)
@@ -132,7 +132,7 @@ public class AdminAuthorityController
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
-            @ApiImplicitParam(name = "deviceId", value = "设备id", required = true),
+            @ApiImplicitParam(name = "deviceId", value = "设备id", dataTypeClass = String.class, required = true),
             @ApiImplicitParam(name = "userName", value = "要搜索的管理员名字", dataTypeClass = String.class),
             @ApiImplicitParam(name = "userAccount", value = "要搜索的管理员账号", dataTypeClass = String.class),
     })

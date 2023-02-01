@@ -30,6 +30,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public User getUserByCardID(Long cardID)
+    {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getCardId, cardID);
+        return this.getOne(queryWrapper);
+    }
+
+    @Override
     public List<Long> getIdByLikeNameAndAccount(String name, String account)
     {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();

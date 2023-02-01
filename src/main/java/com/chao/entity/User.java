@@ -43,7 +43,7 @@ public class User implements Serializable
      * 校园卡id
      */
     @ApiModelProperty("校园卡id")
-    private String cardNumber;
+    private String cardId;
     /**
      * 手机号
      */

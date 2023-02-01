@@ -1,7 +1,6 @@
 package com.chao.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Sequence;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chao.common.CommonEnum;
 import com.chao.entity.*;
@@ -44,13 +43,6 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     }
 
     @Override
-    public void openDevice(Long deviceId)
-    {
-        //todo:待完善具体方法
-        log.info("设备已启动");
-    }
-
-    @Override
     public boolean judgeUserAndDevice(Long userId, Long deviceId)
     {
         User user = userService.getById(userId);
@@ -69,27 +61,6 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
             permitDeviceIdList.addAll(adminAuthorityDeviceIdList);
         }
         return permitDeviceIdList.contains(deviceId);
-    }
-
-    @Override
-    public boolean updateDeviceInfo(Device device)
-    {
-        //todo:待完善具体方法
-        return false;
-    }
-
-    @Override
-    public void deviceLink(Device linkDevice)
-    {
-        Sequence sequence = new Sequence();
-        if (linkDevice.getId() == 0)
-        {
-            //雪花算法生成id
-            linkDevice.setId(sequence.nextId());
-            this.save(linkDevice);
-            updateDeviceInfo(linkDevice);
-        }
-        //todo:如果存在id相同的已经上线的设备，处理方法
     }
 
     @Override

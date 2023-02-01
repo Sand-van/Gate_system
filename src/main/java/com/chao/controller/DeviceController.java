@@ -57,6 +57,8 @@ public class DeviceController
         return ReturnMessage.forbiddenError("没有权限");
     }
 
+    // TODO: 2023/2/1 设备在线状态更新
+
     @DeleteMapping("/delete")
     @ApiOperation("删除单个设备")
     @ApiImplicitParam(name = "deviceIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
@@ -67,6 +69,9 @@ public class DeviceController
         //超级管理员的权限
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
+            if (DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceIdToDelete) != null)
+                return ReturnMessage.commonError("设备离线");
+
             LambdaQueryWrapper<PermissionRecords> PRQueryWrapper = new LambdaQueryWrapper<>();
             PRQueryWrapper.eq(PermissionRecords::getDeviceId, deviceIdToDelete);
             permissionRecordsService.remove(PRQueryWrapper);
@@ -92,11 +97,12 @@ public class DeviceController
         return ReturnMessage.forbiddenError("非法用户");
     }
 
+    //todo:未测试过！！
     @PostMapping("/replace")
     @ApiOperation("替换设备")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "deviceIdToBeReplace", value = "被替换的设备id", required = true),
-            @ApiImplicitParam(name = "deviceToReplace", value = "要替换的设备信息", required = true)
+            @ApiImplicitParam(name = "deviceToReplace", value = "替换的设备信息", required = true)
     })
     public ReturnMessage<String> replaceDevice(Long deviceIdToBeReplace, @RequestBody Device deviceToReplace)
     {
@@ -107,8 +113,11 @@ public class DeviceController
             if (deviceService.getDeviceDataCount(deviceToReplace.getId()) != 0)
                 return ReturnMessage.commonError("要替换的设备存在数据信息，请尝试删除该设备来重置此设备");
 
+            //
+            DeviceWebSocket deviceToReplaceSocket = DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceToReplace.getId());
+
             deviceToReplace.setId(deviceIdToBeReplace);
-            deviceService.updateDeviceInfo(deviceToReplace);
+//            deviceService.updateDeviceInfo(deviceToReplace);
             return ReturnMessage.success("替换成功");
         }
         return ReturnMessage.commonError("没有权限");
@@ -123,7 +132,13 @@ public class DeviceController
 
         if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
+            //更新数据库
             deviceService.updateById(deviceToUpdate);
+            //更新具体设备
+            DeviceWebSocket deviceToUpdateSocket = DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceToUpdate.getId());
+            if (deviceToUpdateSocket == null)
+                return ReturnMessage.commonError("设备不在线");
+            deviceToUpdateSocket.sendDeviceData(deviceToUpdate.getId(), deviceToUpdate.getName());
             return ReturnMessage.success("更新成功");
         }
         return ReturnMessage.commonError("没有权限");
@@ -131,7 +146,7 @@ public class DeviceController
 
     @GetMapping("/getById")
     @ApiOperation("根据设备ID获取设备信息")
-    @ApiImplicitParam(name = "deviceId", value = "要获取的设备Id", required = true)
+    @ApiImplicitParam(name = "deviceId", value = "要获取的设备Id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<Device> getDeviceById(Long deviceId)
     {
         return ReturnMessage.success(deviceService.getById(deviceId));
@@ -169,7 +184,10 @@ public class DeviceController
     {
         if (deviceService.judgeUserAndDevice(BaseContext.getCurrentID(), deviceId))
         {
-            deviceService.openDevice(deviceId);
+            DeviceWebSocket deviceSocket = DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceId);
+            if (deviceSocket == null)
+                return ReturnMessage.commonError("设备未上线");
+            deviceSocket.sendOpenRequest();
             return ReturnMessage.success("启动成功");
         }
         return ReturnMessage.commonError("没有权限");

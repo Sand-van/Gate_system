@@ -8,28 +8,28 @@ import io.swagger.annotations.ApiModelProperty;
 public class PermissionRecordsDto extends PermissionRecords
 {
     @ApiModelProperty("用户名")
-    private String UserName;
+    private String userName;
 
     @ApiModelProperty("设备名")
-    private String DeviceName;
+    private String deviceName;
 
     public String getUserName()
     {
-        return UserName;
+        return userName;
     }
 
     public void setUserName(String userName)
     {
-        UserName = userName;
+        this.userName = userName;
     }
 
     public String getDeviceName()
     {
-        return DeviceName;
+        return deviceName;
     }
 
     public void setDeviceName(String deviceName)
     {
-        DeviceName = deviceName;
+        this.deviceName = deviceName;
     }
 }

@@ -60,7 +60,7 @@ public class UserApplyController
 
     @DeleteMapping("/deleteById")
     @ApiOperation("通过id来删除用户申请")
-    @ApiImplicitParam(name = "userApplyId", value = "要删除的用户申请id", required = true)
+    @ApiImplicitParam(name = "userApplyId", value = "要删除的用户申请id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUserApplyById(Long userApplyId)
     {
         userApplyService.removeById(userApplyId);
@@ -69,7 +69,7 @@ public class UserApplyController
 
     @DeleteMapping("/deleteByIdList")
     @ApiOperation("通过id列表删除用户申请信息")
-    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户申请信息的id列表", required = true)
+    @ApiImplicitParam(name = "userIdListToDelete", value = "要删除的用户申请信息的id列表", dataTypeClass = List.class, required = true)
     public ReturnMessage<String> deleteUserApplyByList(@RequestBody List<Long> userIdListToDelete)
     {
         int successNumber = 0, failNumber = 0;

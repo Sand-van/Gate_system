@@ -40,7 +40,8 @@ public class LoginCheckFilter implements Filter
                         "/user/login",
                         "/user/logout",
                         "/backend/**",
-                        "/front/**"
+                        "/front/**",
+                        "/deviceSocket"
                 };
         //2、判断本次请求是否需要处理，如果不需要处理，则直接放行
         if (checkUrl(acceptUrls, requestURI))
@@ -74,5 +75,4 @@ public class LoginCheckFilter implements Filter
         }
         return false;
     }
-
 }
