@@ -5,13 +5,10 @@ import com.chao.common.CommonEnum;
 import com.chao.common.WebSocketConfigurator;
 import com.chao.entity.Device;
 import com.chao.entity.User;
-import com.chao.service.Impl.DeviceServiceImpl;
-import com.chao.service.Impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -23,21 +20,14 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-class DeviceWebSocketSet
-{
-
-}
-
 @ServerEndpoint(value = "/deviceSocket", configurator = WebSocketConfigurator.class)
 @Component
 @Slf4j
 public class DeviceWebSocket
 {
-    @Autowired
-    private DeviceService deviceService;
+    private static DeviceService deviceService;
 
-    @Autowired
-    private UserService userService;
+    private static UserService userService;
 
     private Session session;
     // 当前设备的ID
@@ -52,11 +42,26 @@ public class DeviceWebSocket
     private byte exceptMessage = 0;
 
     private static final CopyOnWriteArraySet<DeviceWebSocket> deviceWebSocketSet = new CopyOnWriteArraySet<>();
-    @PostConstruct
-    public void init()
+
+    /*https://www.cnblogs.com/dyingstraw/p/12865800.html#
+    spring管理的都是单例（singleton），和websocket（多对象）相冲突。
+    项目启动时初始化，会初始化websocket（非用户连接的），spring同时会为其注入service，该对象的service不是null，被成功注入。
+    但是，由于spring默认管理的是单例，所以只会注入一次service。当新用户进入聊天时，系统又会创建一个新的websocket对象，
+    这时矛盾出现了：spring管理的都是单例，不会给第二个websocket对象注入service，所以导致只要是用户连接创建的websocket对象，都不能再注入了。
+
+    像controller里面有service，service里面有dao。因为controller，service，dao都有是单例，所以注入时不会报null。
+    但是websocket不是单例，所以使用spring注入一次后，后面的对象就不会再注入了，会报null。
+    */
+    @Autowired
+    public void setDeviceService(DeviceService deviceService)
     {
-        deviceService = this.deviceService;
-        userService = this.userService;
+        DeviceWebSocket.deviceService = deviceService;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService)
+    {
+        DeviceWebSocket.userService = userService;
     }
 
     @OnOpen
