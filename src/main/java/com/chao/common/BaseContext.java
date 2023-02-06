@@ -5,14 +5,14 @@ package com.chao.common;
  */
 public class BaseContext
 {
-    private static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
+    private static ThreadLocal<UserSimpleInfo> threadLocal = new ThreadLocal<>();
 
-    public static void setCurrentID(Long id)
+    public static void setCurrentUserInfo(Long userID, Integer userType)
     {
-        threadLocal.set(id);
+        threadLocal.set(new UserSimpleInfo(userID, userType));
     }
 
-    public static Long getCurrentID()
+    public static UserSimpleInfo getCurrentUserInfo()
     {
         return threadLocal.get();
     }

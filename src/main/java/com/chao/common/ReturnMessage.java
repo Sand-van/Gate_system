@@ -1,9 +1,12 @@
 package com.chao.common;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +24,10 @@ public class ReturnMessage<T>
     private Integer code; //编码：1成功，0和其它数字为失败
 
     @ApiModelProperty("错误信息")
-    private String msg; //错误信息
+    private String msg; //信息
+
+    @ApiModelProperty("token")
+    private String token;
 
     @ApiModelProperty("数据")
     private T data; //数据
@@ -34,6 +40,17 @@ public class ReturnMessage<T>
         ReturnMessage<T> r = new ReturnMessage<>();
         r.data = object;
         r.code = 200;
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("id", BaseContext.getCurrentUserInfo().getUserID());
+        map.put("type", BaseContext.getCurrentUserInfo().getUserType());
+
+        r.token = Jwts.builder().setIssuedAt(new Date())
+                .setClaims(map)
+                .setExpiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000))   //30分钟过期
+                .signWith(SignatureAlgorithm.HS256, "123456")
+                .compact();
+
         return r;
     }
 
@@ -58,10 +75,7 @@ public class ReturnMessage<T>
      */
     public static <T> ReturnMessage<T> commonError(String msg)
     {
-        ReturnMessage<T> r = new ReturnMessage<>();
-        r.msg = msg;
-        r.code = 430;
-        return r;
+        return error(430, msg);
     }
 
     /**
@@ -71,10 +85,7 @@ public class ReturnMessage<T>
      */
     public static <T> ReturnMessage<T> unauthorizedError(String msg)
     {
-        ReturnMessage<T> r = new ReturnMessage<>();
-        r.msg = msg;
-        r.code = 401;
-        return r;
+        return error(401, msg);
     }
 
     /**
@@ -84,10 +95,7 @@ public class ReturnMessage<T>
      */
     public static <T> ReturnMessage<T> forbiddenError(String msg)
     {
-        ReturnMessage<T> r = new ReturnMessage<>();
-        r.msg = msg;
-        r.code = 403;
-        return r;
+        return error(403, msg);
     }
 
     public ReturnMessage<T> add(String key, Object value)

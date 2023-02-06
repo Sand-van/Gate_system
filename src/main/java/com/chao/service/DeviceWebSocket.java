@@ -357,7 +357,6 @@ public class DeviceWebSocket
 
     /**
      * 判断输入的cardID是否可以开门
-     * todo：移植后要修改逻辑
      *
      * @param cardID 请求的CardID
      * @return 是或否

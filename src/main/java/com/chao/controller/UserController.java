@@ -22,6 +22,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/user")
 @Api(tags = "用户操作相关接口")
+@CrossOrigin
 public class UserController
 {
     @Autowired
@@ -39,23 +40,19 @@ public class UserController
     @Autowired
     private UserApplyService userApplyService;
 
-    /**
-     * 用户登录方法
-     *
-     * @param request Http请求体
-     * @param user    要登录的用户信息
-     * @return 通用返回信息
-     */
+
     @PostMapping("/login")
     @ApiOperation(value = "用户登录")
-    @ApiImplicitParam(name = "user", value = "登录的用户信息", required = true)
-    public ReturnMessage<User> login(HttpServletRequest request, @RequestBody User user)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userAccount", value = "用户账户", required = true),
+            @ApiImplicitParam(name = "password", value = "用户密码", required = true)
+    })
+    public ReturnMessage<User> login(Long userAccount, String password)
     {
-        String password = user.getPassword();
         password = DigestUtils.md5DigestAsHex(password.getBytes());
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getAccount, user.getAccount());
+        queryWrapper.eq(User::getAccount, userAccount);
         User queryedUser = userService.getOne(queryWrapper);
 
         if (queryedUser == null)
@@ -64,8 +61,7 @@ public class UserController
         if (!queryedUser.getPassword().equals(password))
             return ReturnMessage.commonError("用户或密码错误");
 
-        request.getSession().setAttribute("id", queryedUser.getId());
-        request.getSession().setAttribute("type", queryedUser.getType());
+        BaseContext.setCurrentUserInfo(queryedUser.getId(), queryedUser.getType());
 
         return ReturnMessage.success(queryedUser);
     }
@@ -73,16 +69,15 @@ public class UserController
     /**
      * 添加用户方法
      *
-     * @param request   Http请求体
      * @param userToAdd 要添加的用户信息
      * @return 通用返回信息
      */
     @PostMapping("/addUser")
     @ApiOperation("添加用户")
     @ApiImplicitParam(name = "userToAdd", value = "要添加的用户信息", required = true)
-    public ReturnMessage<String> addUser(HttpServletRequest request, @RequestBody User userToAdd)
+    public ReturnMessage<String> addUser(@RequestBody User userToAdd)
     {
-        Integer loginUserType = (Integer) request.getSession().getAttribute("type");
+        Integer loginUserType = BaseContext.getCurrentUserInfo().getUserType();
         userToAdd.setPassword(DigestUtils.md5DigestAsHex(userToAdd.getPassword().getBytes()));
         userToAdd.setId(null);
 
@@ -119,10 +114,9 @@ public class UserController
 
     @PostMapping("/logout")
     @ApiOperation("退出登录")
-    public ReturnMessage<String> logout(HttpServletRequest request)
+    public ReturnMessage<String> logout()
     {
-        request.getSession().removeAttribute("id");
-        request.getSession().removeAttribute("type");
+        //todo:考虑更改成功码，或根本不需要该功能
         return ReturnMessage.success("退出成功");
     }
 
@@ -137,10 +131,10 @@ public class UserController
     public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryNumber)
     {
         Page<User> userPageInfo = new Page<>(page, pageSize);
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         //普通用户没有权限查看用户分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
@@ -169,7 +163,7 @@ public class UserController
         }
 
         //超级管理员的权限
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             userService.updateById(userToUpdate);
             return ReturnMessage.success("信息修改成功");
@@ -202,10 +196,10 @@ public class UserController
     @ApiImplicitParam(name = "userIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUser(Long userIdToDelete)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         //超级管理员的权限
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             userService.removeById(userIdToDelete);
 

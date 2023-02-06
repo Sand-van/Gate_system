@@ -47,9 +47,9 @@ public class DeviceController
     @ApiImplicitParam(name = "deviceToAdd", value = "要添加的设备信息", required = true)
     public ReturnMessage<String> addDevice(@RequestBody Device deviceToAdd)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             deviceService.save(deviceToAdd);
             return ReturnMessage.success("添加成功");
@@ -57,17 +57,16 @@ public class DeviceController
         return ReturnMessage.forbiddenError("没有权限");
     }
 
-    // TODO: 2023/2/1 设备在线状态更新
 
     @DeleteMapping("/delete")
     @ApiOperation("删除单个设备")
     @ApiImplicitParam(name = "deviceIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUser(Long deviceIdToDelete)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         //超级管理员的权限
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             if (DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceIdToDelete) != null)
                 return ReturnMessage.commonError("设备离线");
@@ -98,6 +97,7 @@ public class DeviceController
     }
 
     //todo:未测试过！！
+    //todo:未完成！！
     @PostMapping("/replace")
     @ApiOperation("替换设备")
     @ApiImplicitParams({
@@ -106,9 +106,9 @@ public class DeviceController
     })
     public ReturnMessage<String> replaceDevice(Long deviceIdToBeReplace, @RequestBody Device deviceToReplace)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             if (deviceService.getDeviceDataCount(deviceToReplace.getId()) != 0)
                 return ReturnMessage.commonError("要替换的设备存在数据信息，请尝试删除该设备来重置此设备");
@@ -128,9 +128,9 @@ public class DeviceController
     @ApiImplicitParam(name = "deviceToUpdate", value = "要更新的设备信息", required = true)
     public ReturnMessage<String> updateDevice(@RequestBody Device deviceToUpdate)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             //更新数据库
             deviceService.updateById(deviceToUpdate);
@@ -162,10 +162,10 @@ public class DeviceController
     public ReturnMessage<Page<Device>> page(int page, int pageSize, String queryName)
     {
         Page<Device> devicePageInfo = new Page<>(page, pageSize);
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         //普通用户没有权限查看分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<Device> queryWrapper = new LambdaQueryWrapper<>();
@@ -182,7 +182,7 @@ public class DeviceController
     @ApiImplicitParam(name = "deviceId", value = "设备id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> openDevice(Long deviceId)
     {
-        if (deviceService.judgeUserAndDevice(BaseContext.getCurrentID(), deviceId))
+        if (deviceService.judgeUserAndDevice(BaseContext.getCurrentUserInfo().getUserID(), deviceId))
         {
             DeviceWebSocket deviceSocket = DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceId);
             if (deviceSocket == null)

@@ -8,7 +8,6 @@ import com.chao.common.Formatter;
 import com.chao.common.ReturnMessage;
 import com.chao.dto.PermissionRecordsDto;
 import com.chao.entity.PermissionRecords;
-import com.chao.entity.User;
 import com.chao.service.AdminAuthorityService;
 import com.chao.service.DeviceService;
 import com.chao.service.PermissionRecordsService;
@@ -72,20 +71,20 @@ public class PermissionRecordsController
     public ReturnMessage<Page<PermissionRecordsDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice, String beginTime, String endTime)
     {
         Page<PermissionRecords> recordsPageInfo = new Page<>(page, pageSize);
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<PermissionRecordsDto> recordsDtoPageInfo = new Page<>();
 
         //普通用户没有权限查看用户分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         //管理员只能查看自己权限内的信息
         LambdaQueryWrapper<PermissionRecords> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
         {
-            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
             if (deviceIdByAdminId.size() == 0)
                 return ReturnMessage.success(recordsDtoPageInfo);
             queryWrapper.in(PermissionRecords::getDeviceId, deviceIdByAdminId);

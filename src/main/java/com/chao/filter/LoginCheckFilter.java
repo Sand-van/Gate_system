@@ -1,21 +1,19 @@
 package com.chao.filter;
 
 import com.alibaba.fastjson.JSON;
-import com.chao.common.BaseContext;
 import com.chao.common.ReturnMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 
 import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 检查用户是否已经完成登录
+ * 检查用户是否已经完成登录 已弃用
  */
-@WebFilter(filterName = "loginCheckFilter", urlPatterns = "/*")
+//@WebFilter(filterName = "loginCheckFilter", urlPatterns = "/*")
 @Slf4j
 public class LoginCheckFilter implements Filter
 {
@@ -52,7 +50,7 @@ public class LoginCheckFilter implements Filter
         //3、判断登录状态，如果已登录，则直接放行
         if (request.getSession().getAttribute("id") != null)
         {
-            BaseContext.setCurrentID((Long) request.getSession().getAttribute("id"));
+//            BaseContext.setCurrentID((Long) request.getSession().getAttribute("id"));
             filterChain.doFilter(request, response);
             return;
         }

@@ -6,7 +6,6 @@ import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
 import com.chao.dto.UserApplyDto;
-import com.chao.entity.User;
 import com.chao.entity.UserApply;
 import com.chao.entity.UserPermit;
 import com.chao.service.*;
@@ -95,20 +94,20 @@ public class UserApplyController
     public ReturnMessage<Page<UserApplyDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice)
     {
         Page<UserApply> userPageInfo = new Page<>(page, pageSize);
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<UserApplyDto> userApplyDtoPageInfo = new Page<>();
 
         //普通用户没有权限查看用户分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<UserApply> queryWrapper = new LambdaQueryWrapper<>();
 
         //管理员只能查看自己权限内的申请
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
         {
-            List<Long> deviceId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+            List<Long> deviceId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
             if (deviceId.size() == 0)
                 return ReturnMessage.success(userApplyDtoPageInfo);
             queryWrapper.in(UserApply::getDeviceId, deviceId);
@@ -159,15 +158,15 @@ public class UserApplyController
     public ReturnMessage<String> acceptApply(Long applyId)
     {
         //普通用户没有权限
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
         UserApply userApply = userApplyService.getById(applyId);
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
         {
-            if (!adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId()).contains(userApply.getDeviceId()))
+            if (!adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID()).contains(userApply.getDeviceId()))
             {
                 //管理员没有该设备的权限
                 return ReturnMessage.commonError("没有权限");

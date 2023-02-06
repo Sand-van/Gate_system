@@ -6,7 +6,6 @@ import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
 import com.chao.dto.UserPermitDto;
-import com.chao.entity.User;
 import com.chao.entity.UserPermit;
 import com.chao.service.AdminAuthorityService;
 import com.chao.service.DeviceService;
@@ -52,13 +51,13 @@ public class UserPermitController
      */
     private Boolean isLoginUserHasAuthority(UserPermit userPermit)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return false;
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
         {
             //管理员没有该设备的权限
-            return adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId()).contains(userPermit.getDeviceId());
+            return adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID()).contains(userPermit.getDeviceId());
         }
         return true;
     }
@@ -121,20 +120,20 @@ public class UserPermitController
     public ReturnMessage<Page<UserPermitDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice)
     {
         Page<UserPermit> userPageInfo = new Page<>(page, pageSize);
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<UserPermitDto> userPermitDtoPageInfo = new Page<>();
 
         //普通用户没有权限查看用户分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
 
         //管理员只能查看自己权限内的信息
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
         {
-            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(nowLoginUser.getId());
+            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
             if (deviceIdByAdminId.size() == 0)
                 return ReturnMessage.success(userPermitDtoPageInfo);
             queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);

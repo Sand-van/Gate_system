@@ -44,10 +44,10 @@ public class AdminAuthorityController
     @ApiImplicitParam(name = "adminAuthorityToAdd", value = "要添加的管理员权限信息", dataTypeClass = AdminAuthority.class, required = true)
     public ReturnMessage<String> addAdminAuthority(@RequestBody AdminAuthority adminAuthorityToAdd)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
         User adminToAdd = userService.getById(adminAuthorityToAdd.getUserId());
 
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN) && Objects.equals(adminToAdd.getType(), CommonEnum.USER_TYPE_ADMIN))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN) && Objects.equals(adminToAdd.getType(), CommonEnum.USER_TYPE_ADMIN))
         {
             //查找是否有重复信息
             if (adminAuthorityService.getAuthorityIdByAdminIdAndDeviceId(adminAuthorityToAdd.getUserId(), adminAuthorityToAdd.getDeviceId()) != null)
@@ -67,8 +67,8 @@ public class AdminAuthorityController
     @ApiImplicitParam(name = "adminAuthorityId", value = "要删除的管理员权限id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteAdminAuthority(Long adminAuthorityId)
     {
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
             adminAuthorityService.removeById(adminAuthorityId);
             return ReturnMessage.success("删除成功");
@@ -89,9 +89,9 @@ public class AdminAuthorityController
         Page<AdminAuthority> adminAuthorityPageInfo = new Page<>(page, pageSize);
         Page<AdminAuthorityDto> adminAuthorityDtoPageInfo = new Page<>();
 
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
         //普通用户没有权限查看分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<AdminAuthority> queryWrapper = new LambdaQueryWrapper<>();
@@ -141,9 +141,9 @@ public class AdminAuthorityController
         Page<AdminAuthority> adminAuthorityPageInfo = new Page<>(page, pageSize);
         Page<AdminAuthorityDto> adminAuthorityDtoPageInfo = new Page<>();
 
-        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
+//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
         //普通用户没有权限查看分页
-        if (Objects.equals(nowLoginUser.getType(), CommonEnum.USER_TYPE_USER))
+        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<AdminAuthority> queryWrapper = new LambdaQueryWrapper<>();
