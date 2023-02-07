@@ -63,7 +63,19 @@ public class UserController
 
         BaseContext.setCurrentUserInfo(queryedUser.getId(), queryedUser.getType());
 
-        return ReturnMessage.success(queryedUser);
+        return ReturnMessage.successWithToken(queryedUser);
+    }
+
+    @GetMapping("/info")
+    @ApiOperation(value = "获取当前登录用户信息")
+    @ApiImplicitParam(name = "token", value = "token")
+    public ReturnMessage<User> info(String token)
+    {
+        User user = userService.getById(BaseContext.getCurrentUserInfo().getUserID());
+        if (user != null)
+            return ReturnMessage.success(user);
+
+        return ReturnMessage.commonError("没有该用户");
     }
 
     /**

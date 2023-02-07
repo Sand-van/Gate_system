@@ -40,6 +40,17 @@ public class ReturnMessage<T>
         ReturnMessage<T> r = new ReturnMessage<>();
         r.data = object;
         r.code = 200;
+        return r;
+    }
+
+    /**
+     * 返回一个带有token的成功信息
+     * @param object 要传递的信息
+     * @return 封装好的信息js
+     */
+    public static <T> ReturnMessage<T> successWithToken(T object)
+    {
+        ReturnMessage<T> r = success(object);
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("id", BaseContext.getCurrentUserInfo().getUserID());
