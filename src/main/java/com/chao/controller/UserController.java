@@ -138,9 +138,9 @@ public class UserController
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryNumber", value = "要搜索的工号、学号", dataTypeClass = String.class)
+            @ApiImplicitParam(name = "queryAccount", value = "要搜索的工号、学号", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryNumber)
+    public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryAccount)
     {
         Page<User> userPageInfo = new Page<>(page, pageSize);
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -151,8 +151,8 @@ public class UserController
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(queryName), User::getName, queryName)
-                .like(StringUtils.isNotEmpty(queryNumber), User::getAccount, queryNumber)
-                .orderByDesc(User::getUpdateUser);
+                .like(StringUtils.isNotEmpty(queryAccount), User::getAccount, queryAccount)
+                .orderByDesc(User::getUpdateTime);
 
         userService.page(userPageInfo, queryWrapper);
 
@@ -162,10 +162,9 @@ public class UserController
     @PutMapping("/update")
     @ApiOperation("修改用户")
     @ApiImplicitParam(name = "userToUpdate", value = "要修改的用户信息", required = true)
-    public ReturnMessage<String> updateUser(HttpServletRequest request, @RequestBody User userToUpdate)
+    public ReturnMessage<String> updateUser(@RequestBody User userToUpdate)
     {
-        log.info(User.class.toString());
-        User nowLoginUser = userService.getById((Long) request.getSession().getAttribute("id"));
+        User nowLoginUser = userService.getById(BaseContext.getCurrentUserInfo().getUserID());
 
         //自己可以修改自己
         if (Objects.equals(userToUpdate.getId(), nowLoginUser.getId()))

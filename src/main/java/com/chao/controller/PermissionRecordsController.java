@@ -63,12 +63,12 @@ public class PermissionRecordsController
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryNumber", value = "要搜索的学号", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryAccount", value = "要搜索的学号", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "beginTime", value = "要搜索的起始时间", dataTypeClass = String.class),
             @ApiImplicitParam(name = "endTime", value = "要搜索的结束时间", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<PermissionRecordsDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice, String beginTime, String endTime)
+    public ReturnMessage<Page<PermissionRecordsDto>> page(int page, int pageSize, String queryName, String queryAccount, String queryDevice, String beginTime, String endTime)
     {
         Page<PermissionRecords> recordsPageInfo = new Page<>(page, pageSize);
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -90,9 +90,9 @@ public class PermissionRecordsController
             queryWrapper.in(PermissionRecords::getDeviceId, deviceIdByAdminId);
         }
 
-        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
+        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryAccount))
         {
-            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryNumber);
+            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryAccount);
             if (userIds.size() == 0)    //防止出现 select * from xxx where(user_id in [null])错误
                 return ReturnMessage.success(recordsDtoPageInfo);
             queryWrapper.in(PermissionRecords::getUserId, userIds);

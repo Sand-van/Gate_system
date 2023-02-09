@@ -82,6 +82,54 @@ public class UserApplyController
         return ReturnMessage.success(String.format("成功删除的个数：%d，删除失败的个数：%d", successNumber, failNumber));
     }
 
+    @GetMapping("/pageForMyOwn")
+    @ApiOperation("获取当前登录用户自己的申请分页信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class)
+    })
+    public ReturnMessage<Page<UserApplyDto>> pageByOwnId(int page, int pageSize,String queryDevice)
+    {
+        Page<UserApply> userPageInfo = new Page<>(page, pageSize);
+
+        Page<UserApplyDto> userApplyDtoPageInfo = new Page<>();
+
+        LambdaQueryWrapper<UserApply> queryWrapper = new LambdaQueryWrapper<>();
+
+        queryWrapper.eq(UserApply::getUserId, BaseContext.getCurrentUserInfo().getUserID());
+
+        if (StringUtils.isNotEmpty(queryDevice))
+        {
+            List<Long> deviceIds = deviceService.getIdByLikeName(queryDevice);
+            if (deviceIds.size() == 0)  //防止出现 in []错误
+                return ReturnMessage.success(userApplyDtoPageInfo);
+            queryWrapper.in(UserApply::getDeviceId, deviceIds);
+        }
+
+        queryWrapper.orderByDesc(UserApply::getApplyTime);
+        userApplyService.page(userPageInfo, queryWrapper);
+        BeanUtils.copyProperties(userPageInfo, userApplyDtoPageInfo, "records");
+        //流处理，将UserApply转化为UserApplyDto
+        List<UserApply> records = userPageInfo.getRecords();
+        List<UserApplyDto> dtoRecords = records.stream().map((item) ->
+        {
+            UserApplyDto userApplyDto = new UserApplyDto();
+            BeanUtils.copyProperties(item, userApplyDto);
+
+            Long id = item.getUserId();
+            userApplyDto.setUserName(userService.getById(id).getName());
+
+            id = item.getDeviceId();
+            userApplyDto.setDeviceName(deviceService.getById(id).getName());
+
+            return userApplyDto;
+        }).collect(Collectors.toList());
+
+        userApplyDtoPageInfo.setRecords(dtoRecords);
+        return ReturnMessage.success(userApplyDtoPageInfo);
+    }
+
     @GetMapping("/page")
     @ApiOperation("请求用户申请分页信息")
     @ApiImplicitParams({
@@ -94,7 +142,6 @@ public class UserApplyController
     public ReturnMessage<Page<UserApplyDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice)
     {
         Page<UserApply> userPageInfo = new Page<>(page, pageSize);
-//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<UserApplyDto> userApplyDtoPageInfo = new Page<>();
 

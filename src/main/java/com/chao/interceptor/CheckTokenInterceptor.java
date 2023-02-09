@@ -33,7 +33,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor
         try
         {
             JwtParser parser = Jwts.parser();
-            parser.setSigningKey("123456");
+            parser.setSigningKey("tZe0M6");
             Jws<Claims> claimsJws = parser.parseClaimsJws(token);
             Claims body = claimsJws.getBody();
             //将当前登录用户信息写入线程中

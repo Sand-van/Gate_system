@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
+import com.chao.dto.DeviceSimpleInfoDto;
 import com.chao.entity.*;
 import com.chao.service.*;
 import io.swagger.annotations.Api;
@@ -16,6 +17,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -175,6 +178,26 @@ public class DeviceController
         deviceService.page(devicePageInfo, queryWrapper);
 
         return ReturnMessage.success(devicePageInfo);
+    }
+
+    @GetMapping("/simpleInfo")
+    @ApiOperation("获取所有设备简易信息")
+    public ReturnMessage<List<DeviceSimpleInfoDto>> allDeviceSimpleInfo()
+    {
+        LambdaQueryWrapper<Device> queryWrapper = new LambdaQueryWrapper<>();
+        List<DeviceSimpleInfoDto> deviceSimpleInfoDtoList = new ArrayList<>();
+        queryWrapper.orderByAsc(Device::getName);
+        List<Device> deviceList = deviceService.list();
+
+        for (Device device: deviceList)
+        {
+            DeviceSimpleInfoDto deviceSimpleInfo = new DeviceSimpleInfoDto();
+            deviceSimpleInfo.setId(device.getId());
+            deviceSimpleInfo.setName(device.getName());
+            deviceSimpleInfoDtoList.add(deviceSimpleInfo);
+        };
+
+        return ReturnMessage.success(deviceSimpleInfoDtoList);
     }
 
     @PostMapping("/openDevice")

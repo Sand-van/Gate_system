@@ -14,6 +14,7 @@ public class GateSystemApplication
 {
     public static void main(String[] args)
     {
+        System.setProperty("druid.mysql.usePingMethod","false");
         SpringApplication.run(GateSystemApplication.class, args);
         log.info("服务器启动!");
     }

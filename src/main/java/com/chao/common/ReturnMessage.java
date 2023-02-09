@@ -21,7 +21,7 @@ public class ReturnMessage<T>
 {
 
     @ApiModelProperty(value = "状态码")
-    private Integer code; //编码：1成功，0和其它数字为失败
+    private int code; //编码：1成功，0和其它数字为失败
 
     @ApiModelProperty("错误信息")
     private String msg; //信息
@@ -58,8 +58,8 @@ public class ReturnMessage<T>
 
         r.token = Jwts.builder().setIssuedAt(new Date())
                 .setClaims(map)
-                .setExpiration(new Date(System.currentTimeMillis() + 30 * 60 * 1000))   //30分钟过期
-                .signWith(SignatureAlgorithm.HS256, "123456")
+                .setExpiration(new Date(System.currentTimeMillis() + 2 * 60 * 60 * 1000))   //60分钟过期
+                .signWith(SignatureAlgorithm.HS256, "tZe0M6")
                 .compact();
 
         return r;
