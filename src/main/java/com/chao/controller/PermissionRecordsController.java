@@ -49,6 +49,7 @@ public class PermissionRecordsController
 
     /**
      * 添加通行记录
+     *
      * @param recordsToAdd 要添加的通行记录
      */
     public void addPermissionRecords(PermissionRecords recordsToAdd)
@@ -62,13 +63,16 @@ public class PermissionRecordsController
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "queryUserId", value = "要搜索的用户id（精准匹配）", dataTypeClass = Long.class),
+            @ApiImplicitParam(name = "queryDeviceId", value = "要搜索的设备id（精准匹配）", dataTypeClass = Long.class),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryAccount", value = "要搜索的学号", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryDeviceName", value = "要搜索的设备名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "beginTime", value = "要搜索的起始时间", dataTypeClass = String.class),
             @ApiImplicitParam(name = "endTime", value = "要搜索的结束时间", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<PermissionRecordsDto>> page(int page, int pageSize, String queryName, String queryAccount, String queryDevice, String beginTime, String endTime)
+    public ReturnMessage<Page<PermissionRecordsDto>> page(int page, int pageSize, Long queryUserId, Long queryDeviceId,
+                                                          String queryName, String queryAccount, String queryDeviceName, String beginTime, String endTime)
     {
         Page<PermissionRecords> recordsPageInfo = new Page<>(page, pageSize);
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -90,6 +94,9 @@ public class PermissionRecordsController
             queryWrapper.in(PermissionRecords::getDeviceId, deviceIdByAdminId);
         }
 
+        queryWrapper.eq(queryUserId != null, PermissionRecords::getUserId, queryUserId);
+        queryWrapper.eq(queryDeviceId != null, PermissionRecords::getDeviceId, queryDeviceId);
+
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryAccount))
         {
             List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryAccount);
@@ -98,9 +105,9 @@ public class PermissionRecordsController
             queryWrapper.in(PermissionRecords::getUserId, userIds);
         }
 
-        if (StringUtils.isNotEmpty(queryDevice))
+        if (StringUtils.isNotEmpty(queryDeviceName))
         {
-            List<Long> deviceIds = deviceService.getIdByLikeName(queryDevice);
+            List<Long> deviceIds = deviceService.getIdByLikeName(queryDeviceName);
             if (deviceIds.size() == 0)  //防止出现 in []错误
                 return ReturnMessage.success(recordsDtoPageInfo);
             queryWrapper.in(PermissionRecords::getDeviceId, deviceIds);
@@ -114,7 +121,7 @@ public class PermissionRecordsController
 
         queryWrapper.orderByDesc(PermissionRecords::getPermissionTime);
         permissionRecordsService.page(recordsPageInfo, queryWrapper);
-        BeanUtils.copyProperties(recordsPageInfo,recordsDtoPageInfo,"records");
+        BeanUtils.copyProperties(recordsPageInfo, recordsDtoPageInfo, "records");
 
         //流处理
         List<PermissionRecords> records = recordsPageInfo.getRecords();

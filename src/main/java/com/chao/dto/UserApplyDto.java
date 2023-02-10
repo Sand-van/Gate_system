@@ -10,6 +10,9 @@ public class UserApplyDto extends UserApply
     @ApiModelProperty("用户名")
     private String userName;
 
+    @ApiModelProperty("用户账号")
+    private String userAccount;
+
     @ApiModelProperty("设备名")
     private String deviceName;
 
@@ -31,5 +34,15 @@ public class UserApplyDto extends UserApply
     public void setDeviceName(String deviceName)
     {
         this.deviceName = deviceName;
+    }
+
+    public String getUserAccount()
+    {
+        return userAccount;
+    }
+
+    public void setUserAccount(String userAccount)
+    {
+        this.userAccount = userAccount;
     }
 }

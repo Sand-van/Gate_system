@@ -113,14 +113,14 @@ public class UserPermitController
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
+            @ApiImplicitParam(name = "queryUserId", value = "要请求的用户id（精准匹配）", dataTypeClass = Long.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryNumber", value = "要搜索的学号", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryAccount", value = "要搜索的学号", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<UserPermitDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice)
+    public ReturnMessage<Page<UserPermitDto>> page(int page, int pageSize, Long queryUserId,String queryName, String queryAccount, String queryDevice)
     {
         Page<UserPermit> userPageInfo = new Page<>(page, pageSize);
-//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<UserPermitDto> userPermitDtoPageInfo = new Page<>();
 
@@ -139,9 +139,11 @@ public class UserPermitController
             queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
         }
 
-        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
+        queryWrapper.eq(queryUserId != null, UserPermit::getUserId, queryUserId);
+
+        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryAccount))
         {
-            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryNumber);
+            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryAccount);
             if (userIds.size() == 0)    //防止出现 select * from xxx where(user_id in [null])错误
                 return ReturnMessage.success(userPermitDtoPageInfo);
             queryWrapper.in(UserPermit::getUserId, userIds);

@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -95,7 +96,7 @@ public class AdminAuthorityController
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<AdminAuthority> queryWrapper = new LambdaQueryWrapper<>();
-        if (deviceName != null)
+        if (StringUtils.isNotEmpty(deviceName))
         {
             List<Long> likeNameDeviceIdList = deviceService.getIdByLikeName(deviceName);
             if (likeNameDeviceIdList.size() == 0)
@@ -147,7 +148,7 @@ public class AdminAuthorityController
             return ReturnMessage.forbiddenError("没有权限");
 
         LambdaQueryWrapper<AdminAuthority> queryWrapper = new LambdaQueryWrapper<>();
-        if ((userName != null) || (userAccount != null))
+        if (StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(userAccount))
         {
             List<Long> likeNameDeviceIdList = userService.getIdByLikeNameAndAccount(userName, userAccount);
             if (likeNameDeviceIdList.size() == 0)

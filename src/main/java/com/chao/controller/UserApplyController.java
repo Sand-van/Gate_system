@@ -6,6 +6,7 @@ import com.chao.common.BaseContext;
 import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
 import com.chao.dto.UserApplyDto;
+import com.chao.entity.User;
 import com.chao.entity.UserApply;
 import com.chao.entity.UserPermit;
 import com.chao.service.*;
@@ -136,10 +137,10 @@ public class UserApplyController
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryNumber", value = "要搜索的学号", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryAccount", value = "要搜索的学号", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<UserApplyDto>> page(int page, int pageSize, String queryName, String queryNumber, String queryDevice)
+    public ReturnMessage<Page<UserApplyDto>> page(int page, int pageSize, String queryName, String queryAccount, String queryDevice)
     {
         Page<UserApply> userPageInfo = new Page<>(page, pageSize);
 
@@ -160,9 +161,9 @@ public class UserApplyController
             queryWrapper.in(UserApply::getDeviceId, deviceId);
         }
 
-        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryNumber))
+        if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryAccount))
         {
-            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryNumber);
+            List<Long> userIds = userService.getIdByLikeNameAndAccount(queryName, queryAccount);
             if (userIds.size() == 0)    //防止出现 select * from xxx where(user_id in [null])错误
                 return ReturnMessage.success(userApplyDtoPageInfo);
             queryWrapper.in(UserApply::getUserId, userIds);
@@ -187,7 +188,9 @@ public class UserApplyController
             BeanUtils.copyProperties(item, userApplyDto);
 
             Long id = item.getUserId();
-            userApplyDto.setUserName(userService.getById(id).getName());
+            User userById = userService.getById(id);
+            userApplyDto.setUserName(userById.getName());
+            userApplyDto.setUserAccount(userById.getAccount());
 
             id = item.getDeviceId();
             userApplyDto.setDeviceName(deviceService.getById(id).getName());
