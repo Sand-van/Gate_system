@@ -114,11 +114,12 @@ public class UserPermitController
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "queryUserId", value = "要请求的用户id（精准匹配）", dataTypeClass = Long.class, required = true),
+            @ApiImplicitParam(name = "queryDeviceId", value = "要请求的设备id（精准匹配）", dataTypeClass = Long.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryAccount", value = "要搜索的学号", dataTypeClass = String.class),
             @ApiImplicitParam(name = "queryDevice", value = "要搜索的设备名", dataTypeClass = String.class)
     })
-    public ReturnMessage<Page<UserPermitDto>> page(int page, int pageSize, Long queryUserId,String queryName, String queryAccount, String queryDevice)
+    public ReturnMessage<Page<UserPermitDto>> page(int page, int pageSize, Long queryUserId, Long queryDeviceId, String queryName, String queryAccount, String queryDevice)
     {
         Page<UserPermit> userPageInfo = new Page<>(page, pageSize);
 
@@ -140,6 +141,7 @@ public class UserPermitController
         }
 
         queryWrapper.eq(queryUserId != null, UserPermit::getUserId, queryUserId);
+        queryWrapper.eq(queryDeviceId != null, UserPermit::getDeviceId, queryDeviceId);
 
         if (StringUtils.isNotEmpty(queryName) || StringUtils.isNotEmpty(queryAccount))
         {
