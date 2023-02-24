@@ -76,6 +76,22 @@ public class UserPermitController
         return ReturnMessage.commonError("没有权限");
     }
 
+    @PostMapping("/addByList")
+    @ApiOperation("通过列表添加用户通行权限信息")
+    @ApiImplicitParam(name = "userPermitListToAdd", value = "要添加的用户通行权限信息的列表", required = true)
+    public ReturnMessage<String> addUserPermitByList(@RequestBody List<UserPermit> userPermitListToAdd)
+    {
+        int successNumber = 0, failNumber = 0;
+        for (UserPermit userPermit : userPermitListToAdd)
+        {
+            if (addUserPermit(userPermit).getCode() == 200)
+                successNumber +=1;
+            else
+                failNumber +=1;
+        }
+        return ReturnMessage.success(String.format("成功添加的个数：%d，添加失败的个数：%d", successNumber, failNumber));
+    }
+
     //todo:增加修改操作
 
     @DeleteMapping("/deleteById")

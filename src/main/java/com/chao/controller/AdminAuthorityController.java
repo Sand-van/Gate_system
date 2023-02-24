@@ -48,6 +48,7 @@ public class AdminAuthorityController
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
         User adminToAdd = userService.getById(adminAuthorityToAdd.getUserId());
 
+        // 只有超级管理员才能为管理员添加管理员权限
         if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN) && Objects.equals(adminToAdd.getType(), CommonEnum.USER_TYPE_ADMIN))
         {
             //查找是否有重复信息
@@ -61,6 +62,25 @@ public class AdminAuthorityController
         }
 
         return ReturnMessage.commonError("没有权限");
+    }
+
+    @PostMapping("/addByList")
+    @ApiOperation("添加管理员权限")
+    @ApiImplicitParam(name = "adminAuthorityListToAdd", value = "要添加的管理员权限信息列表", required = true)
+    public ReturnMessage<String> addAdminAuthorityByList(@RequestBody List<AdminAuthority> adminAuthorityListToAdd)
+    {
+        int successNumber = 0, failNumber = 0;
+        if (!Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
+            return ReturnMessage.commonError("没有权限");
+
+        for (AdminAuthority adminAuthority : adminAuthorityListToAdd)
+        {
+            if (addAdminAuthority(adminAuthority).getCode() == 200)
+                successNumber += 1;
+            else
+                failNumber += 1;
+        }
+        return ReturnMessage.success(String.format("成功添加的个数：%d，添加失败的个数：%d", successNumber, failNumber));
     }
 
     @DeleteMapping("/deleteById")
@@ -113,7 +133,8 @@ public class AdminAuthorityController
         BeanUtils.copyProperties(adminAuthorityPageInfo, adminAuthorityDtoPageInfo, "records");
         //流处理，将adminAuthority转化为adminAuthorityDto
         List<AdminAuthority> records = adminAuthorityPageInfo.getRecords();
-        List<AdminAuthorityDto> dtoRecords = records.stream().map((item) -> {
+        List<AdminAuthorityDto> dtoRecords = records.stream().map((item) ->
+        {
             AdminAuthorityDto adminAuthorityDto = new AdminAuthorityDto();
             BeanUtils.copyProperties(item, adminAuthorityDto);
 
@@ -165,7 +186,8 @@ public class AdminAuthorityController
         BeanUtils.copyProperties(adminAuthorityPageInfo, adminAuthorityDtoPageInfo, "records");
         //流处理，将adminAuthority转化为adminAuthorityDto
         List<AdminAuthority> records = adminAuthorityPageInfo.getRecords();
-        List<AdminAuthorityDto> dtoRecords = records.stream().map((item) -> {
+        List<AdminAuthorityDto> dtoRecords = records.stream().map((item) ->
+        {
             AdminAuthorityDto adminAuthorityDto = new AdminAuthorityDto();
             BeanUtils.copyProperties(item, adminAuthorityDto);
 

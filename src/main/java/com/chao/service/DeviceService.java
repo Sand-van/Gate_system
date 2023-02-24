@@ -31,9 +31,4 @@ public interface DeviceService extends IService<Device>
      */
     int getDeviceDataCount(Long deviceId);
 
-    /**
-     * 重置该设备，恢复初始状态
-     * @param deviceId 要重置的设备id
-     */
-    void resetDevice(Long deviceId);
 }

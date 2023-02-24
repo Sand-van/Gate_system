@@ -87,9 +87,4 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
         return count;
     }
 
-    @Override
-    public void resetDevice(Long deviceId)
-    {
-        //将设备id重设为0，名字重设为“新设备”
-    }
 }

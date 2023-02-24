@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,8 +31,8 @@ public class DeviceController
     @Autowired
     private DeviceService deviceService;
 
-    @Autowired
-    private UserService userService;
+//    @Autowired
+//    private UserService userService;
 
     @Autowired
     private UserPermitService userPermitService;
@@ -66,13 +67,9 @@ public class DeviceController
     @ApiImplicitParam(name = "deviceIdToDelete", value = "要删除的用户的id", dataTypeClass = Long.class, required = true)
     public ReturnMessage<String> deleteUser(Long deviceIdToDelete)
     {
-//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
-
         //超级管理员的权限
         if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
         {
-            if (DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceIdToDelete) != null)
-                return ReturnMessage.commonError("设备离线");
 
             LambdaQueryWrapper<PermissionRecords> PRQueryWrapper = new LambdaQueryWrapper<>();
             PRQueryWrapper.eq(PermissionRecords::getDeviceId, deviceIdToDelete);
@@ -90,10 +87,16 @@ public class DeviceController
             adminAuthorityQueryWrapper.eq(AdminAuthority::getDeviceId, deviceIdToDelete);
             adminAuthorityService.remove(adminAuthorityQueryWrapper);
 
-            deviceService.resetDevice(deviceIdToDelete);
-
+            // 如果设备在线，因为设备会重连，则只需重置该设备名称即可
+            if (DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceIdToDelete) != null)
+            {
+                Device deviceToSql = new Device();
+                deviceToSql.setId(deviceIdToDelete);
+                deviceToSql.setName("重置的设备");
+                deviceService.updateById(deviceToSql);
+            }
+            // 设备不在线，则删除该设备
             deviceService.removeById(deviceIdToDelete);
-
             return ReturnMessage.success("设备删除成功");
         }
         return ReturnMessage.forbiddenError("非法用户");
@@ -137,11 +140,10 @@ public class DeviceController
         {
             //更新数据库
             deviceService.updateById(deviceToUpdate);
-            //更新具体设备
+            //更新具体设备socket信息
             DeviceWebSocket deviceToUpdateSocket = DeviceWebSocket.getDeviceWebSocketByDeviceID(deviceToUpdate.getId());
-            if (deviceToUpdateSocket == null)
-                return ReturnMessage.commonError("设备不在线");
-            deviceToUpdateSocket.sendDeviceData(deviceToUpdate.getId(), deviceToUpdate.getName());
+            if ((deviceToUpdateSocket != null) && (deviceToUpdate.getName() != null))
+                deviceToUpdateSocket.setDeviceName(deviceToUpdate.getName());
             return ReturnMessage.success("更新成功");
         }
         return ReturnMessage.commonError("没有权限");
@@ -165,7 +167,6 @@ public class DeviceController
     public ReturnMessage<Page<Device>> page(int page, int pageSize, String queryName)
     {
         Page<Device> devicePageInfo = new Page<>(page, pageSize);
-//        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         //普通用户没有权限查看分页
         if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
@@ -189,13 +190,14 @@ public class DeviceController
         queryWrapper.orderByAsc(Device::getName);
         List<Device> deviceList = deviceService.list();
 
-        for (Device device: deviceList)
+        for (Device device : deviceList)
         {
             DeviceSimpleInfoDto deviceSimpleInfo = new DeviceSimpleInfoDto();
             deviceSimpleInfo.setId(device.getId());
             deviceSimpleInfo.setName(device.getName());
             deviceSimpleInfoDtoList.add(deviceSimpleInfo);
-        };
+        }
+        ;
 
         return ReturnMessage.success(deviceSimpleInfoDtoList);
     }
@@ -211,6 +213,13 @@ public class DeviceController
             if (deviceSocket == null)
                 return ReturnMessage.commonError("设备未上线");
             deviceSocket.sendOpenRequest();
+            // 添加开门信息
+            PermissionRecords permissionRecordsToSql = new PermissionRecords();
+            permissionRecordsToSql.setUserId(BaseContext.getCurrentUserInfo().getUserID());
+            permissionRecordsToSql.setDeviceId(deviceId);
+            permissionRecordsToSql.setPermissionTime(LocalDateTime.now());
+            permissionRecordsToSql.setIsSuccess(CommonEnum.SUCCESS);
+            permissionRecordsService.save(permissionRecordsToSql);
             return ReturnMessage.success("启动成功");
         }
         return ReturnMessage.commonError("没有权限");

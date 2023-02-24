@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Sequence;
 import com.chao.common.CommonEnum;
 import com.chao.common.WebSocketConfigurator;
 import com.chao.entity.Device;
+import com.chao.entity.PermissionRecords;
 import com.chao.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -29,6 +29,9 @@ public class DeviceWebSocket
 
     private static UserService userService;
 
+    private static PermissionRecordsService permissionRecordsService;
+
+
     private Session session;
     // 当前设备的ID
     private Long deviceID = 0L;
@@ -40,6 +43,11 @@ public class DeviceWebSocket
     private Long receiveCardID = 0L;
     // 下一个应该接收到的信息种类
     private byte exceptMessage = 0;
+
+    public void setDeviceName(String deviceName)
+    {
+        this.deviceName = deviceName;
+    }
 
     private static final CopyOnWriteArraySet<DeviceWebSocket> deviceWebSocketSet = new CopyOnWriteArraySet<>();
 
@@ -64,15 +72,20 @@ public class DeviceWebSocket
         DeviceWebSocket.userService = userService;
     }
 
+    @Autowired
+    public void setPermissionRecordsService(PermissionRecordsService permissionRecordsService)
+    {
+        DeviceWebSocket.permissionRecordsService = permissionRecordsService;
+    }
+
     @OnOpen
     public void onOpen(Session session)
     {
         this.session = session;
         this.exceptMessage = MessageType.DEVICE_SEND_DEVICE_DATA;
         this.deviceIP = (String) this.session.getUserProperties().get("ip");
-//        deviceWebSocketSet.add(this);
 
-        log.info("[webSocket消息] 有新的连接，总数：{}", deviceWebSocketSet.size() + 1);
+        log.info("[新设备消息] 有新的连接，ip：{}，总连接数：{}", this.deviceIP, deviceWebSocketSet.size() + 1);
     }
 
     @OnClose
@@ -85,14 +98,14 @@ public class DeviceWebSocket
             deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_OFFLINE);
             deviceService.updateById(deviceToSql);
         }
+        log.info("[设备消息] 设备:{} - 连接断开，当前总数：{}", this.deviceName, deviceWebSocketSet.size());
         deviceWebSocketSet.remove(this);
-        log.info("[webSocket消息] 连接断开，总数：{}", deviceWebSocketSet.size());
     }
 
     @OnMessage
     public void onMessage(ByteBuffer byteBuffer)
     {
-        log.info("[webSocket消息] 收到消息种类：{}", byteBuffer.get(0));
+        log.info("[设备消息] 设备:{} - 收到消息种类：{}", this.deviceName, byteBuffer.get(0));
         try
         {
             messageHandle(byteBuffer.array(), byteBuffer.array().length);
@@ -148,14 +161,14 @@ public class DeviceWebSocket
 
             case MessageType.DEVICE_SEND_DEVICE_DATA:
             {
-                getDeviceInfoHandle(message, messageLen);
+                getDeviceInfoHandle(message);
                 Device deviceToSql = new Device();
                 //只在此处注入数据库
                 if (this.deviceID == 0)
                 {
                     this.deviceID = newID();
                     this.deviceName = "新设备";
-                    sendDeviceData(this.deviceID, this.deviceName);
+                    sendDeviceData(this.deviceID);
 
                     deviceToSql.setId(this.deviceID);
                     deviceToSql.setName(this.deviceName);
@@ -168,7 +181,7 @@ public class DeviceWebSocket
                     exceptMessage = MessageType.DEVICE_SUCCESS;
                 } else if (!isDeviceIdInDataBase(this.deviceID))
                 {
-
+                    this.deviceName = "被配置过的设备";
                     deviceToSql.setId(this.deviceID);
                     deviceToSql.setName(this.deviceName);
                     deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_ONLINE);
@@ -178,7 +191,7 @@ public class DeviceWebSocket
                     sendSuccessResponse();
                 } else if (getDeviceWebSocketByDeviceID(this.deviceID) == null)
                 {
-
+                    this.deviceName = deviceService.getById(this.deviceID).getName();
                     deviceToSql.setId(this.deviceID);
                     deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_ONLINE);
                     deviceToSql.setIp(this.deviceIP);
@@ -188,8 +201,8 @@ public class DeviceWebSocket
                 } else
                 {
                     this.deviceID = newID();
-                    this.deviceName = "重设的设备";
-                    sendDeviceData(this.deviceID, this.deviceName);
+                    this.deviceName = "id被占用后重设的设备";
+                    sendDeviceData(this.deviceID);
 
                     deviceToSql.setId(this.deviceID);
                     deviceToSql.setName(this.deviceName);
@@ -214,7 +227,9 @@ public class DeviceWebSocket
                     isSetExceptMessage = true;
                     exceptMessage = MessageType.DEVICE_SUCCESS;
                 } else
+                {
                     sendFailResponse();
+                }
                 break;
             }
 
@@ -285,19 +300,15 @@ public class DeviceWebSocket
     /**
      * 发送重设设备信息 0x83
      *
-     * @param deviceID   设备id
-     * @param deviceName 设备名
+     * @param deviceID 设备id
      */
-    public void sendDeviceData(Long deviceID, String deviceName)
+    public void sendDeviceData(Long deviceID)
     {
         byte[] dataToSend = new byte[100];
         dataToSend[0] = MessageType.SERVER_SET_DEVICE_DATA;
         for (int i = 0; i < 8; i++)
             dataToSend[8 - i] = (byte) (deviceID >> (i * 8));
-        byte[] deviceNameArray = deviceName.getBytes();
-        int deviceNameArrayLen = deviceNameArray.length;
-        System.arraycopy(deviceNameArray, 0, dataToSend, 9, deviceNameArrayLen);
-        sendData(dataToSend, deviceNameArrayLen + 9);
+        sendData(dataToSend, 9);
         //修改设备数据后总是要获取成功码的
         this.exceptMessage = MessageType.DEVICE_SUCCESS;
     }
@@ -323,11 +334,9 @@ public class DeviceWebSocket
     /**
      * 获取设备信息 处理0x03
      */
-    private void getDeviceInfoHandle(byte[] data, int dataLen)
+    private void getDeviceInfoHandle(byte[] data)
     {
         this.deviceID = turnArrayToLong(data, 1);
-        byte[] stringData = Arrays.copyOfRange(data, 9, dataLen);
-        this.deviceName = new String(stringData);
     }
 
     /**
@@ -356,7 +365,7 @@ public class DeviceWebSocket
     }
 
     /**
-     * 判断输入的cardID是否可以开门
+     * 判断输入的cardID是否可以开门，同时将记录写入数据库中
      *
      * @param cardID 请求的CardID
      * @return 是或否
@@ -364,9 +373,25 @@ public class DeviceWebSocket
     private boolean isCardIdPermitted(Long cardID)
     {
         User userByCardID = userService.getUserByCardID(cardID);
+        PermissionRecords permissionRecordsToSql = new PermissionRecords();
+
+        permissionRecordsToSql.setDeviceId(this.deviceID);
+        permissionRecordsToSql.setCardId(cardID);
+        permissionRecordsToSql.setPermissionTime(LocalDateTime.now());
         if (userByCardID == null)
+        {
+            permissionRecordsToSql.setIsSuccess(CommonEnum.FAIL);
+            permissionRecordsService.save(permissionRecordsToSql);
             return false;
-        return (deviceService.judgeUserAndDevice(userByCardID.getId(), this.deviceID));
+        }
+        permissionRecordsToSql.setUserId(userByCardID.getId());
+        boolean isPermissionExistence = deviceService.judgeUserAndDevice(userByCardID.getId(), this.deviceID);
+        if (isPermissionExistence)
+            permissionRecordsToSql.setIsSuccess(CommonEnum.SUCCESS);
+        else
+            permissionRecordsToSql.setIsSuccess(CommonEnum.FAIL);
+        permissionRecordsService.save(permissionRecordsToSql);
+        return (isPermissionExistence);
     }
 
 

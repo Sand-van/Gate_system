@@ -137,9 +137,10 @@ public class UserController
             @ApiImplicitParam(name = "page", value = "要显示第几页", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "pageSize", value = "一页显示几条信息", dataTypeClass = int.class, required = true),
             @ApiImplicitParam(name = "queryName", value = "要搜索的人名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "queryAccount", value = "要搜索的工号、学号", dataTypeClass = String.class)
+            @ApiImplicitParam(name = "queryAccount", value = "要搜索的工号、学号", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "queryType", value = "要搜索的用户类型", dataTypeClass = int.class)
     })
-    public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryAccount)
+    public ReturnMessage<Page<User>> page(int page, int pageSize, String queryName, String queryAccount, Integer queryType)
     {
         Page<User> userPageInfo = new Page<>(page, pageSize);
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
@@ -151,6 +152,7 @@ public class UserController
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtils.isNotEmpty(queryName), User::getName, queryName)
                 .like(StringUtils.isNotEmpty(queryAccount), User::getAccount, queryAccount)
+                .eq(queryType != null, User::getType, queryType)
                 .orderByDesc(User::getUpdateTime);
 
         userService.page(userPageInfo, queryWrapper);

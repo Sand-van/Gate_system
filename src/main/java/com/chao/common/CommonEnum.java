@@ -19,4 +19,7 @@ public class CommonEnum
     public static final Integer DEVICE_STATUS_ONLINE = 1;
     public static final Integer DEVICE_STATUS_OFFLINE = 2;
     public static final Integer DEVICE_STATUS_DISABLED = 3;
+
+    public static final Integer FAIL = 0;
+    public static final Integer SUCCESS = 1;
 }

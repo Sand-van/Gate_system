@@ -30,9 +30,15 @@ public class PermissionRecords implements Serializable
      */
     @ApiModelProperty("设备id")
     private Long deviceId;
+
+    @ApiModelProperty("校园卡id")
+    private Long cardId;
     /**
      * 通行时间
      */
     @ApiModelProperty("通行时间")
     private LocalDateTime permissionTime;
+
+    @ApiModelProperty("是否通行成功")
+    private Integer isSuccess;
 }
