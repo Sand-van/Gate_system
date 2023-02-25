@@ -140,20 +140,24 @@ public class UserPermitController
         Page<UserPermit> userPageInfo = new Page<>(page, pageSize);
 
         Page<UserPermitDto> userPermitDtoPageInfo = new Page<>();
-
-        //普通用户没有权限查看用户分页
-        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
-            return ReturnMessage.forbiddenError("没有权限");
-
         LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
 
-        //管理员只能查看自己权限内的信息
-        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
+        // 用户可以查看自己的权限
+        if (!Objects.equals(queryUserId, BaseContext.getCurrentUserInfo().getUserID()))
         {
-            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
-            if (deviceIdByAdminId.size() == 0)
-                return ReturnMessage.success(userPermitDtoPageInfo);
-            queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
+            //普通用户没有权限查看用户分页
+            if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
+                return ReturnMessage.forbiddenError("没有权限");
+
+
+            //管理员只能查看自己权限内的信息
+            if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
+            {
+                List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
+                if (deviceIdByAdminId.size() == 0)
+                    return ReturnMessage.success(userPermitDtoPageInfo);
+                queryWrapper.in(UserPermit::getDeviceId, deviceIdByAdminId);
+            }
         }
 
         queryWrapper.eq(queryUserId != null, UserPermit::getUserId, queryUserId);

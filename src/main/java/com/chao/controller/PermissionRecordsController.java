@@ -78,22 +78,26 @@ public class PermissionRecordsController
 //        User nowLoginUser = userService.getById(BaseContext.getCurrentID());
 
         Page<PermissionRecordsDto> recordsDtoPageInfo = new Page<>();
-
-        //普通用户没有权限查看用户分页
-        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
-            return ReturnMessage.forbiddenError("没有权限");
-
-        //管理员只能查看自己权限内的信息
         LambdaQueryWrapper<PermissionRecords> queryWrapper = new LambdaQueryWrapper<>();
 
-        if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
+        //用户可以查看自己的登录信息
+        if (!Objects.equals(queryUserId, BaseContext.getCurrentUserInfo().getUserID()))
         {
-            List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
-            if (deviceIdByAdminId.size() == 0)
-                return ReturnMessage.success(recordsDtoPageInfo);
-            queryWrapper.in(PermissionRecords::getDeviceId, deviceIdByAdminId);
-        }
+            //普通用户没有权限查看用户分页
+            if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_USER))
+                return ReturnMessage.forbiddenError("没有权限");
 
+            //管理员只能查看自己权限内的信息
+
+            if (Objects.equals(BaseContext.getCurrentUserInfo().getUserType(), CommonEnum.USER_TYPE_ADMIN))
+            {
+                List<Long> deviceIdByAdminId = adminAuthorityService.getDeviceIdByAdminId(BaseContext.getCurrentUserInfo().getUserID());
+                if (deviceIdByAdminId.size() == 0)
+                    return ReturnMessage.success(recordsDtoPageInfo);
+                queryWrapper.in(PermissionRecords::getDeviceId, deviceIdByAdminId);
+            }
+
+        }
         queryWrapper.eq(queryUserId != null, PermissionRecords::getUserId, queryUserId);
         queryWrapper.eq(queryDeviceId != null, PermissionRecords::getDeviceId, queryDeviceId);
 
@@ -142,4 +146,5 @@ public class PermissionRecordsController
         recordsDtoPageInfo.setRecords(dtoRecords);
         return ReturnMessage.success(recordsDtoPageInfo);
     }
+
 }
