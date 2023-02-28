@@ -26,6 +26,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/device")
 @Api(tags = "设备管理相关接口")
+@CrossOrigin
 public class DeviceController
 {
     @Autowired

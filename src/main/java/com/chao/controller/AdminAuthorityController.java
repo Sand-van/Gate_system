@@ -7,6 +7,7 @@ import com.chao.common.CommonEnum;
 import com.chao.common.ReturnMessage;
 import com.chao.dto.AdminAuthorityDto;
 import com.chao.entity.AdminAuthority;
+import com.chao.entity.Device;
 import com.chao.entity.User;
 import com.chao.service.AdminAuthorityService;
 import com.chao.service.DeviceService;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/admin")
 @Api(tags = "管理员权限管理相关接口")
+@CrossOrigin
 public class AdminAuthorityController
 {
     @Autowired
@@ -139,7 +141,10 @@ public class AdminAuthorityController
             BeanUtils.copyProperties(item, adminAuthorityDto);
 
             Long id = item.getDeviceId();
-            adminAuthorityDto.setDeviceName(deviceService.getById(id).getName());
+            Device device = deviceService.getById(id);
+            adminAuthorityDto.setDeviceName(device.getName());
+            adminAuthorityDto.setDeviceStatue(device.getStatus());
+            adminAuthorityDto.setDeviceIp(device.getIp());
             adminAuthorityDto.setAdminName(userService.getById(adminId).getName());
 
             return adminAuthorityDto;

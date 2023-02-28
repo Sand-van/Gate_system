@@ -42,7 +42,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor
             return true;
         } catch (Exception e)
         {
-            doResponse(response, ReturnMessage.commonError("login_outDate"));
+            doResponse(response, ReturnMessage.tokenOutDateError("login_outDate"));
         }
         return false;
     }

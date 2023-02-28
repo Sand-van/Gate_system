@@ -90,13 +90,13 @@ public class ReturnMessage<T>
     }
 
     /**
-     * 未授权错误,请求要求用户的身份认证
+     * token过期错误
      * @param msg 错误信息
      * @return 通用信息类
      */
-    public static <T> ReturnMessage<T> unauthorizedError(String msg)
+    public static <T> ReturnMessage<T> tokenOutDateError(String msg)
     {
-        return error(401, msg);
+        return error(431, msg);
     }
 
     /**

@@ -82,10 +82,8 @@ public class WebMvcConfig implements WebMvcConfigurer
     public Docket creatRestApi()
     {
         List<Response> responseList = new ArrayList<>();
-        responseList.add(new ResponseBuilder().code("401").description("Unauthorized").build());
-        responseList.add(new ResponseBuilder().code("403").description("Forbidden").build());
-        responseList.add(new ResponseBuilder().code("404").description("Not Found").build());
         responseList.add(new ResponseBuilder().code("430").description("普通错误").build());
+        responseList.add(new ResponseBuilder().code("431").description("token过期错误").build());
 
         return new Docket(DocumentationType.SWAGGER_2)
                 .globalResponses(HttpMethod.GET, responseList)

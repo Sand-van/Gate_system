@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/user/permit")
 @Api(tags = "用户通行权限操作相关接口")
+@CrossOrigin
 public class UserPermitController
 {
     @Autowired

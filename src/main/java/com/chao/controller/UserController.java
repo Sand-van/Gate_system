@@ -42,16 +42,13 @@ public class UserController
 
     @PostMapping("/login")
     @ApiOperation(value = "用户登录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userAccount", value = "用户账户", required = true),
-            @ApiImplicitParam(name = "password", value = "用户密码", required = true)
-    })
-    public ReturnMessage<User> login(Long userAccount, String password)
+    @ApiImplicitParam(name = "userToLogin", value = "要登录的用户信息", required = true)
+    public ReturnMessage<User> login(@RequestBody User userToLogin)
     {
-        password = DigestUtils.md5DigestAsHex(password.getBytes());
+        String password = DigestUtils.md5DigestAsHex(userToLogin.getPassword().getBytes());
 
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getAccount, userAccount);
+        queryWrapper.eq(User::getAccount, userToLogin.getAccount());
         User queryedUser = userService.getOne(queryWrapper);
 
         if (queryedUser == null)
