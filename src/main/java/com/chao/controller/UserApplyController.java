@@ -55,6 +55,9 @@ public class UserApplyController
         userApplyToAdd.setId(null);
         userApplyToAdd.setApplyTime(LocalDateTime.now());
 
+        if(userApplyToAdd.getUserId() == null)
+            userApplyToAdd.setUserId(BaseContext.getCurrentUserInfo().getUserID());
+
         userApplyService.save(userApplyToAdd);
         return ReturnMessage.success("保存成功");
     }

@@ -125,9 +125,8 @@ public class AdminAuthorityController
                 return ReturnMessage.success(adminAuthorityDtoPageInfo);
             queryWrapper.in(AdminAuthority::getDeviceId, likeNameDeviceIdList);
         }
-        // 管理员只能查看自己的设备
-        if (Objects.equals(nowQueryUser.getType(), CommonEnum.USER_TYPE_ADMIN))
-            queryWrapper.eq(AdminAuthority::getUserId, adminId);
+
+        queryWrapper.eq(AdminAuthority::getUserId, adminId);
 
         queryWrapper.orderByAsc(AdminAuthority::getDeviceId);
         adminAuthorityService.page(adminAuthorityPageInfo, queryWrapper);
