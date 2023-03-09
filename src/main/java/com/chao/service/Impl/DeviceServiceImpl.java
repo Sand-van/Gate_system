@@ -51,16 +51,16 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
         if (Objects.equals(user.getType(), CommonEnum.USER_TYPE_SUPER_ADMIN))
             return true;
 
-        List<Long> permitDeviceIdList = userPermitService.getPermitDeviceByUserID(userId);
 
         if (Objects.equals(user.getType(), CommonEnum.USER_TYPE_ADMIN))
         {
             List<Long> adminAuthorityDeviceIdList = adminAuthorityService.getDeviceIdByAdminId(userId);
             //取交集
-            permitDeviceIdList.removeAll(adminAuthorityDeviceIdList);
-            permitDeviceIdList.addAll(adminAuthorityDeviceIdList);
+            if (adminAuthorityDeviceIdList.contains(deviceId))
+                return true;
         }
-        return permitDeviceIdList.contains(deviceId);
+//        List<Long> permitDeviceIdList = userPermitService.getPermitDeviceByUserID(userId);
+        return userPermitService.isUserHasPermit(userId, deviceId);
     }
 
     @Override

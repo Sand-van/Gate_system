@@ -32,9 +32,6 @@ public class DeviceController
     @Autowired
     private DeviceService deviceService;
 
-//    @Autowired
-//    private UserService userService;
-
     @Autowired
     private UserPermitService userPermitService;
 

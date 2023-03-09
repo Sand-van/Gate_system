@@ -13,4 +13,12 @@ public interface UserPermitService extends IService<UserPermit>
      * @return 能通行的设备id列表
      */
     List<Long> getPermitDeviceByUserID(Long userId);
+
+    /**
+     * 判断用户是否拥有某设备的权限
+     * @param userId 用户id
+     * @param deviceId 设备id
+     * @return 是否拥有权限
+     */
+    Boolean isUserHasPermit(Long userId, Long deviceId);
 }

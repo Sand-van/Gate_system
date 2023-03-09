@@ -7,6 +7,7 @@ import com.chao.mapper.UserPermitMapper;
 import com.chao.service.UserPermitService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,5 +20,17 @@ public class UserPermitServiceImpl extends ServiceImpl<UserPermitMapper, UserPer
         LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserPermit::getUserId, userId);
         return this.list(queryWrapper).stream().map(UserPermit::getDeviceId).collect(Collectors.toList());
+    }
+
+    @Override
+    public Boolean isUserHasPermit(Long userId, Long deviceId)
+    {
+        LocalDateTime nowTime = LocalDateTime.now();
+        LambdaQueryWrapper<UserPermit> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserPermit::getUserId, userId).eq(UserPermit::getDeviceId, deviceId)
+                .lt(UserPermit::getBeginTime, nowTime).gt(UserPermit::getEndTime, nowTime);
+
+        UserPermit userPermit = this.getOne(queryWrapper);
+        return userPermit != null;
     }
 }

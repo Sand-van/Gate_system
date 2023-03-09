@@ -62,6 +62,20 @@ public class UserController
         return ReturnMessage.successWithToken(queryedUser);
     }
 
+    @PostMapping("/changePassword")
+    @ApiOperation(value = "修改密码")
+    @ApiImplicitParam(name = "userToChange", value = "要修改的用户信息", required = true)
+    public  ReturnMessage<String> changePassword(@RequestBody User userToChange)
+    {
+        String password = DigestUtils.md5DigestAsHex(userToChange.getPassword().getBytes());
+        User newUserInfo = new User();
+        newUserInfo.setPassword(password);
+        newUserInfo.setId(userToChange.getId());
+
+        userService.updateById(newUserInfo);
+        return ReturnMessage.success("密码修改成功");
+    }
+
     @GetMapping("/info")
     @ApiOperation(value = "获取当前登录用户信息")
     @ApiImplicitParam(name = "token", value = "token")

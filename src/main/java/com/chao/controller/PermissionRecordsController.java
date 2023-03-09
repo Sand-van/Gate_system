@@ -137,7 +137,8 @@ public class PermissionRecordsController
             BeanUtils.copyProperties(item, permissionRecordsDto);
 
             Long id = item.getUserId();
-            permissionRecordsDto.setUserName(userService.getById(id).getName());
+            if (id != null)
+                permissionRecordsDto.setUserName(userService.getById(id).getName());
 
             id = item.getDeviceId();
             permissionRecordsDto.setDeviceName(deviceService.getById(id).getName());

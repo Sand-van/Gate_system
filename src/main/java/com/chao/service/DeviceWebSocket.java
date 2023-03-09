@@ -98,14 +98,14 @@ public class DeviceWebSocket
             deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_OFFLINE);
             deviceService.updateById(deviceToSql);
         }
-        log.info("[设备消息] 设备:{} - 连接断开，当前总数：{}", this.deviceName, deviceWebSocketSet.size());
+        log.info("[设备消息] 设备:{} - 连接断开，当前总数：{}", this.deviceName, deviceWebSocketSet.size() - 1);
         deviceWebSocketSet.remove(this);
     }
 
     @OnMessage
     public void onMessage(ByteBuffer byteBuffer)
     {
-        log.info("[设备消息] 设备:{} - 收到消息种类：{}", this.deviceName, byteBuffer.get(0));
+        log.info("[设备消息] 设备:{} - 收到消息种类：[{}]", this.deviceName, byteBuffer.get(0));
         try
         {
             messageHandle(byteBuffer.array(), byteBuffer.array().length);
@@ -142,7 +142,7 @@ public class DeviceWebSocket
         //如果期待存在而且收到的信息类型与期待不符
         if ((message[0] != this.exceptMessage) && (this.exceptMessage != 0))
         {
-            log.info(this.deviceID + '-' + this.deviceName + ":收到了未期待的信息");
+            log.info("[设备消息] 设备:{} - 收到未期待的消息消息种类：[{}]；期待消息为：[{}]", this.deviceName, message[0], this.exceptMessage);
             sendFailResponse();
             return;
         }
@@ -181,7 +181,7 @@ public class DeviceWebSocket
                     exceptMessage = MessageType.DEVICE_SUCCESS;
                 } else if (!isDeviceIdInDataBase(this.deviceID))
                 {
-                    this.deviceName = "被配置过的设备";
+                    this.deviceName = "曾经使用过的设备";
                     deviceToSql.setId(this.deviceID);
                     deviceToSql.setName(this.deviceName);
                     deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_ONLINE);
@@ -200,18 +200,33 @@ public class DeviceWebSocket
                     sendSuccessResponse();
                 } else
                 {
-                    this.deviceID = newID();
-                    this.deviceName = "id被占用后重设的设备";
-                    sendDeviceData(this.deviceID);
+//                    this.deviceID = newID();
+//                    this.deviceName = "id被占用后重设的设备";
+//                    sendDeviceData(this.deviceID);
+//
+//                    deviceToSql.setId(this.deviceID);
+//                    deviceToSql.setName(this.deviceName);
+//                    deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_ONLINE);
+//                    deviceToSql.setIp(this.deviceIP);
+//                    deviceService.save(deviceToSql);
+//
+//                    isSetExceptMessage = true;
+//                    exceptMessage = MessageType.DEVICE_SUCCESS;
 
+                    this.deviceName = deviceService.getById(this.deviceID).getName();
+                    for (DeviceWebSocket deviceWebSocket : deviceWebSocketSet)
+                    {
+                        if (deviceWebSocket == this)
+                            continue;
+                        if (Objects.equals(deviceWebSocket.deviceID, this.deviceID))
+                            deviceWebSocket.onClose();
+                    }
                     deviceToSql.setId(this.deviceID);
-                    deviceToSql.setName(this.deviceName);
                     deviceToSql.setStatus(CommonEnum.DEVICE_STATUS_ONLINE);
                     deviceToSql.setIp(this.deviceIP);
-                    deviceService.save(deviceToSql);
+                    deviceService.updateById(deviceToSql);
 
-                    isSetExceptMessage = true;
-                    exceptMessage = MessageType.DEVICE_SUCCESS;
+                    log.info(this.deviceName + "已重连");
                 }
 
                 deviceWebSocketSet.add(this);
@@ -235,7 +250,7 @@ public class DeviceWebSocket
 
             default:
             {
-                log.info(this.deviceID + '-' + this.deviceName + ":收到未知指令");
+                log.info("[设备消息] 设备:{} - 收到非法消息消息种类：[{}]", this.deviceName, message[0]);
             }
         }
         if (!isSetExceptMessage)
