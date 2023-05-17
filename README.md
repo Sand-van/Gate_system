@@ -1,6 +1,6 @@
 ## 项目综述
 
-这是本人门禁系统的后端子项目，参考了[瑞吉外卖](https://www.bilibili.com/video/BV13a411q753)，如果你是从零开始，请看 [学习路径](https://github.com/Sand-van/Gate_system_backEndblob/master/学习路径.md)
+这是本人门禁系统的后端子项目，参考了[瑞吉外卖](https://www.bilibili.com/video/BV13a411q753)，如果你是从零开始，请看 [学习路径](https://github.com/Sand-van/Gate_system_backEnd/blob/master/学习路径.md)
 
 ## 运行环境
 
@@ -18,7 +18,7 @@
 
 ## 数据库设计
 
-使用PDmaner进行数据库建模，将设计文件`门禁系统.pdma.js`导入PDmaner即可。
+使用PDmaner进行数据库建模，将设计文件`门禁系统.pdma.json`导入PDmaner即可。
 
 也可使用`gate_system.sql`导入数据库，里面包含了一些测试数据，如测试超级管理员账户为123456；密码为123456。
 
